@@ -24,9 +24,12 @@ export default function ContactSection() {
       formDataToSend.append("message", formData.message);
 
       try {
-        await fetch('https://script.google.com/macros/s/AKfycbx8sPK1kk4UtdhcuWP7SVrBFl_zSJ08h3A9R1644b5c1hGWRcf47dm-Jv8iEMYOtZ3QAw/exec', {
+        await fetch('https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg3hB8okVV5HPjH-6LyNxSve1tu3HSmWfqbc1YXHFLuCzsv5bEFSjmwpJ_NlKabTBTGifvzw_gndU7UaUcLk26fsGMm9R-tw4lCpv89uNgyAVmXDerviedXp1h17gQBeINmQGDIJVFOSRsBpo6fDo60jYIQDUjG-VRqgRC90ugQbz3S-NW92X1N-H70svFhWSjiVgPcajhqW48tU7U4NgUxW4yUnk4X6hP8IFfJcce_XcJMGA_BkIMkJ0HnyaMU8tOQizke-zhCNUZVV6IkooIppsaPUpX3Um22Kubc&lib=MHvilX95sblhMXEkQkg5WOAaK-5ggeP_m', {
           method: 'POST',
-          body: formDataToSend,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
         });
 
         toast.success('¡Mensaje enviado con éxito!');
