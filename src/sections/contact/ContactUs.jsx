@@ -44,12 +44,12 @@ return(
     <h2 className="text-3xl font-bold text-center text-[#0077B6] mb-4">Contáctanos</h2>  
        <div className="space-y-2 text-sm text-gray-700 mb-4">
         <div className="flex items-center justify-center gap-2">
-          <Phone className="text-[#0077B6]" size={16} />
+          <Phone className="text-[#0077B6]" size={20} />
           <span>+52 33 2788 2862</span>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Mail className="text-[#0077B6]" size={16} />
-          <span>swift@homes.com</span>
+          <Mail className="text-[#0077B6]" size={20} />
+          <span>swiftHomesContacto@gmail.com</span>
         </div>
       </div>
 
