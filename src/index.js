@@ -5,6 +5,7 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import App from './App';
 import FavoritesView from './components/FavoritesView';
 import './index.css';
+import ContactSection from './sections/contact/ContactUs.jsx';
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: 'favoritos',
         element: <FavoritesView />,
+      },
+      {
+        path: 'contacto',
+        element: <ContactSection />
       },
     ],
   },

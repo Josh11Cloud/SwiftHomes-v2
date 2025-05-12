@@ -11,7 +11,7 @@ const FavoritesPage = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Tus Favoritos</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Tus Favoritos</h2>
       {favoriteProperties.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {favoriteProperties.map(property => (
@@ -19,7 +19,7 @@ const FavoritesPage = () => {
           ))}
         </div>
       ) : (
-        <p className="text-gray-600">No has agregado propiedades a favoritos.</p>
+        <p className="text-gray-600 text-center">No has agregado propiedades a favoritos.</p>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import './App.css';
 import { Home, Search, Filter, DollarSign } from 'lucide-react'; 
-import logo from './assets/icons/SwiftHomes-logo-svg.svg';
+import logo from './assets/icons/SwiftHomes-logo-png.png';
+import hero from './assets/images/hero-png.png'
 import PropertyCard from './components/Propertycard.js';
 import { properties } from './data/properties.js';
 import { Heart } from 'lucide-react';
@@ -56,16 +57,16 @@ const [selectedProperty, setSelectedProperty] = useState(null);
         <ScrollToTop />
       {/* El contenido principal */}
       <header className="bg-white shadow-md">
-      <nav className="flex flex-col sm:flex-row sm:justify-between sm:items-center max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center sm:justify-start gap-2 mb-4 sm:mb-0">
-          <img className="max-h-16 w-auto" src={logo} alt="Logo" />
-            <h1 className="text-2xl font-bold text-[#212529] sm:text-3xl lg:text-4xl">SwiftHomes</h1>
+      <nav className="flex items-center justify-start gap-4 mb-4 sm:mb-0 w-full px-4 py-2 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-start gap-2 mb-4 sm:mb-0 w-full px-4 py-2 sm:px-6 lg:px-8">
+          <img className="h-16 sm:h-12 md:h-16 w-auto" src={logo} alt="Logo" />
+            <h1 className="text-1xl font-bold text-[#212529] sm:text-2xl md:text-3xl lg:text-4xl">SwiftHomes</h1>
         </div>
-            <ul className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4 text-base sm:text-lg font-semibold text-[#212529]">
-              <Link className="hover:text-[#00B4D8] transition" to="/">Comprar</Link>
-              <Link className="hover:text-[#00B4D8] transition" to="/">Rentar</Link>
-              <Link className="hover:text-[#00B4D8] transition" to="/">Inversiones</Link>
-              <Link className="hover:text-[#00B4D8] transition" to="/">Contacto</Link>
+            <ul className="flex flex-col sm:flex-row justify-between items-center gap-4 text-base sm:text-lg font-semibold text-[#212529]">
+              <Link className="hover:text-[#0077b6] transition" to="/">Comprar</Link>
+              <Link className="hover:text-[#0077b6] transition" to="/">Rentar</Link>
+              <Link className="hover:text-[#0077b6] transition" to="/">Inversiones</Link>
+              <Link className="hover:text-[#0077b6] transition" to="/contacto">Contacto</Link>
               <button onClick={handleFavoritesClick} className="text-gray-700 hover:text-[#0077B6]"><Heart className='hover:scale-105' /></button>
             </ul>
         </nav>   
@@ -75,7 +76,7 @@ const [selectedProperty, setSelectedProperty] = useState(null);
         Bienvenido a <span className="text-gray-900">SwiftHomes</span></h2>
         <p className="text-base md:text-lg text-slate-800">Tu plataforma inteligente para comprar o rentar propiedades</p>
         </div>
-         <img src="./assets/images/hero-png.png" alt="Hero" className="w-full md:w-1/2 max-h-64 object-cover rounded-xl shadow-md"/>
+         <img src={hero} alt="Hero" className="w-full sm:w-full md:w-1/2 h-auto max-h-64 object-contain"/>
       </section> 
       <WhySwiftHomes />
     </header>
@@ -142,7 +143,7 @@ const [selectedProperty, setSelectedProperty] = useState(null);
             </div>
           </section>
           </div>
-          <button className="bg-[#0077B6] text-[#F8F9FA] px-4 py-2 text-sm rounded-lg hover:bg-[#38acea] mt-5 transition" onClick={() => {   setPropertyType(''); setMinPrice(''); setMaxPrice(''); setSearchTerm('');setSortOrder('');}}>Limpiar filtros</button>
+          <button className="bg-[#0077B6] text-[#F8F9FA] px-4 py-2 text-sm rounded-lg hover:bg-[#005f87] mt-5 transition" onClick={() => {   setPropertyType(''); setMinPrice(''); setMaxPrice(''); setSearchTerm('');setSortOrder('');}}>Limpiar filtros</button>
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-4 py-8">
