@@ -1,24 +1,39 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import Home from './sections/home/home';
 import { FavoritesProvider } from './context/FavoritesContext';
-import App from './App';
+import Navbar from './components/NavBar';
+import Footer from './components/Footer';
 import FavoritesView from './components/FavoritesView';
 import './index.css';
 import ContactSection from './sections/contact/ContactUs.jsx';
+import BuySection from './sections/buy/Buy.jsx';
+import RentSection from './sections/Rent/Rent.jsx';
+import InvestSection from './sections/invest/invest.jsx';
+
+const Layout = () => {
+  return (
+    <FavoritesProvider>
+      <div>
+        <Navbar />
+        <main className="min-h-screen">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </FavoritesProvider>
+  );
+};
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <FavoritesProvider>
-        <App />
-      </FavoritesProvider>
-    ),
+    element: <Layout />,
     children: [
       {
         index: true,
-        element: null,
+        element: <Home />,
       },
       {
         path: 'favoritos',
@@ -27,6 +42,18 @@ const router = createBrowserRouter([
       {
         path: 'contacto',
         element: <ContactSection />
+      },
+      {
+        path: 'comprar',
+        element: <BuySection />
+      },
+      {
+        path: 'rentar',
+        element: <RentSection />
+      },
+      {
+        path: 'inversiones',
+        element: <InvestSection />
       },
     ],
   },
