@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Heart, MapPin, CircleParking, ShowerHead, BedSingle } from 'lucide-react';
 import { useFavorites } from '../context/FavoritesContext';
+import ROIHeader from '../sections/invest/ROIHeader';
+import ROIValue from '../sections/invest/ROIValue';
 
 const PropertyCard = ({ property, onClick }) => {
   const { favorites, toggleFavorite } = useFavorites();
@@ -32,16 +34,21 @@ const PropertyCard = ({ property, onClick }) => {
           <span className='text-sm text-gray-500'>{property.area}m²</span>
         </div>
         <p className="font-bold text-[#0077B6] mt-2 text-lg">${property.price.toLocaleString('es-MX')}</p>
-      </div>
-
-      <motion.button
-        whileTap={{ scale: 0.8 }}
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleFavorite(property.id);
-        }}
-        className='absolute top-3 right-3 bg-slate-50 rounded-full p-2 shadow-md'
-      >
+          <h2 className="text-sm text-gray-800 flex items-center gap-2 mb-4">
+            Rentabilidad estimada (ROI anual) 
+            <ROIHeader />
+            <ROIValue value={property.roi} />
+          </h2>
+          </div>
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(property.id);
+              }}
+              aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+              className='absolute top-3 right-3 bg-slate-50 rounded-full p-2 shadow-md'
+            >
         <Heart className={`w-5 h-5 ${isFavorite ? 'fill-[#0077B6] text-[#0077B6]' : 'text-gray-400'}`} />
       </motion.button>
     </motion.div>

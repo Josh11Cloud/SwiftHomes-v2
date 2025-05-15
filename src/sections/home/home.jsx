@@ -2,7 +2,7 @@ import hero from '../../assets/images/hero-png.png';
 import { Link } from 'react-router-dom';
 import WhySwiftHomes from '../../components/WhySwiftHomes';
 import { motion } from 'framer-motion';
-import BgImage from '../../assets/images/bg-1.jpeg'
+import BgImage from '../../assets/images/bg-1.jpg'
 
 function Home() {
   return (
@@ -32,7 +32,15 @@ function Home() {
       </section> 
         </header>
       <WhySwiftHomes />
-        <section className='text-center py-60 w-full' style={{ backgroundImage: `url(${BgImage})` }}>
+        <section 
+          className='text-center py-60 w-full' 
+          style={{
+            backgroundImage: `url(${BgImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
       <div className='flex justify-center gap-4 flex-wrap bg-black-50'></div>
           <motion.div 
           className="relative z-10 text-center text-slate-50"
@@ -40,25 +48,25 @@ function Home() {
           animate={{opacity: 1, y:0}}
           transition={{duration: 0.8}}>
           
-    <h2 className="text-4xl font-bold mb-6 text-slate-50">
+    <h2 className="text-4xl font-bold mb-6 py-4 text-slate-50">
       Empieza a descubrir propiedades
     </h2>
-    <div className="flex justify-center gap-4 flex-wrap">
+    <div className="flex justify-center gap-4 mt-10 flex-wrap">
       <Link
         to="/comprar"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 py-3 text-lg font-medium hover:bg-[#0077b6] transition"
+        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
       >
         Comprar
       </Link>
       <Link
         to="/rentar"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 py-3 text-lg font-medium hover:bg-[#0077b6] transition"
+        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
       >
         Rentar
       </Link>
       <Link
         to="/inversiones"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 py-3 text-lg font-medium hover:bg-[#0077b6] transition"
+        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
       >
         Inversiones
        </Link>

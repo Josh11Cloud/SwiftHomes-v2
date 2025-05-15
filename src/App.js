@@ -4,6 +4,8 @@ import Footer from './components/Footer';
 import Buy from './sections/buy/Buy';
 import Contact from './sections/contact/ContactUs';
 import Home from './sections/home/home';
+import Dashboard from './components/Dashboard/Dashboard';
+import properties from './data/properties.json';
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/comprar" element={<Buy />} />
           <Route path="/contacto" element={<Contact />} />
+          <Route path="/dashboard" element={<Dashboard properties={properties} />} /> 
         </Routes>
       </main>
       <Footer />

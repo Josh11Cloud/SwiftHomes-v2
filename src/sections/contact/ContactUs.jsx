@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Mail, Phone } from 'lucide-react';
+import { motion } from 'framer-motion';
+import correo from '../../assets/images/correo.png'
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -42,7 +44,31 @@ export default function ContactSection() {
     };
 
 return(
-    <section className="bg-white py-12 px-4 md:px-12" id="contact">
+  <>
+      {/* HERO */}
+      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-4 md:px-16 py-12 bg-gradient-to-r sm:min-h-180px min-h-[280px] from-[#2d7195] to-[#0077B6] text-center">
+      <div className='text-center mt-6 md:mt-0'>
+      <motion.h1
+      initial={{ opacity: 0, y:-20 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration: 0.8 }}
+      className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
+        Estamos aquí para <span className="text-gray-900">Ayudarte</span></motion.h1>
+        <motion.p 
+        initial={{ opacity: 0, y:20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 1 }}
+        className="text-base md:text-lg text-slate-800">¿Tienes dudas, quieres asesoría o una propuesta personalizada? Escríbenos y te responderemos en menos de 24 horas.</motion.p>
+        </div>
+         <motion.img 
+         src={correo} 
+         alt="Correo"
+        initial={{ opacity: 0, y:-20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 0.8 }} 
+         className="w-full sm:w-full md:w-1/2 h-60 max-h-64 object-contain"/>
+      </section> 
+    <div className="bg-white py-12 px-4 md:px-12" id="contact">
     <Toaster />
     <h2 className="text-3xl font-bold text-center text-[#0077B6] mb-4">Contáctanos</h2>  
        <div className="space-y-2 text-sm text-gray-700 mb-4">
@@ -92,6 +118,7 @@ return(
             {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
           </button>
         </form>
-    </section>
+    </div>
+  </>
   );
 }

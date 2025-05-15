@@ -18,7 +18,10 @@ function Navbar() {
               <Link className="hover:text-[#0077b6] transition" to="/comprar">Comprar</Link>
               <Link className="hover:text-[#0077b6] transition" to="/rentar">Rentar</Link>
               <Link className="hover:text-[#0077b6] transition" to="/inversiones">Inversiones</Link>
-              <button onClick={handleFavoritesClick} className="text-gray-700 hover:text-[#0077B6]">Favoritos</button>
+              <Link to="/dashboard" className="hover:text-[#0077b6] transition">
+              Dashboard
+              </Link>
+              <button onClick={handleFavoritesClick} className="text-[#212529] hover:text-[#0077B6]">Favoritos</button>
               <Link className="hover:text-[#0077b6] transition" to="/contacto">Contacto</Link>
             </ul>
         </nav> 

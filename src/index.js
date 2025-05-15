@@ -11,6 +11,7 @@ import ContactSection from './sections/contact/ContactUs.jsx';
 import BuySection from './sections/buy/Buy.jsx';
 import RentSection from './sections/Rent/Rent.jsx';
 import InvestSection from './sections/invest/invest.jsx';
+import DashboardSection from './components/Dashboard/Dashboard.jsx';
 
 const Layout = () => {
   return (
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: 'inversiones',
         element: <InvestSection />
+      },
+      {
+        path: 'dashboard',
+        element: <DashboardSection />
       },
     ],
   },

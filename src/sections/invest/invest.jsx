@@ -4,6 +4,9 @@
     import { properties } from '../../data/properties.js';
     import PropertyCard from '../../components/Propertycard.js';
     import PropertyModal from '../../components/PropertyModal.jsx';
+    import Spinner from '../../components/Spinner.jsx';
+    import grafica from '../../assets/images/barra-grafica.png';
+    import ROIValue from './ROIValue.jsx'
   
 const Invest = () => {
         const [minPrice, setMinPrice] = useState('');
@@ -16,31 +19,30 @@ const Invest = () => {
         const propertiesPerPage = 6;
         const [roiData, setRoiData] = useState([]);
         const [fullProps, setFullProps] = useState([]);
+        const [loading, setLoading] = useState(true);
 
         useEffect(() => {
         fetch('https://script.google.com/macros/s/AKfycbzSUx1ZBR-jBlGpQQF6deWkRC0HgRJmLhYqhNf0YPyIEgTM0Cz5lIaFf0u93MKQwOPX/exec')
         .then(res => res.json())
         .then(data => {
-            console.log('Datos de ROI recibidos:', data);
             setRoiData(data);
+            setLoading(false);
         })
         .catch(err => console.error('Error:', err));
         }, []);
 
-        useEffect(() => {
-        if (roiData.length > 0) {
-            console.log('Fusionando datos de ROI con propiedades...');
-            const merged = properties.map(prop => {
-        const roiMatch = roiData.find(roi => Number(roi.id) === prop.id);
-        return {
-            ...prop,
-            roi: roiMatch ? `${(roiMatch.ROI * 100).toFixed(2)}` : 'N/A'
-        };
-        });
-            console.log('Datos fusionados:', merged);
-            setFullProps(merged);
-        }
-        }, [roiData]);
+          useEffect(() => {
+            if (roiData.length > 0) {
+              const roiMap = Object.fromEntries(roiData.map(r => [Number(r.id), r.ROI]));
+              const merged = properties.map(prop => ({
+                ...prop,
+              roi: roiMap[prop.id] !== undefined && !isNaN(parseFloat(roiMap[prop.id])) ? parseFloat(roiMap[prop.id]).toFixed(2) : 'N/A'
+              }));
+              setFullProps(merged);
+            }
+          }, [roiData]);
+
+        if (loading) return <Spinner />;
 
           const filteredProperties = fullProps
           .filter((property) => property.category === 'venta' && property.isInvestment)
@@ -71,23 +73,30 @@ const Invest = () => {
 
     return(
         <section className='min-h-screen w-full bg-cover bg-center'>
-            {/* HERO */}
-            <div className='bg-black/50 w-full py-20 px-6 h-full text-slate-50 flex flex-col items-center bg-gradient-to-r from-[#2d7195] to-[#0077B6]'>
-            <motion.h1
-            initial={{ opacity: 0, y:-20 }}
-            animate={{ opacity:1, y:0 }}
-            transition={{ duration: 0.8 }}
-            className='text-4xl md:text-5xl font-bold mb-4'
-            >Invierte con <span className='text-gray-900'>Inteligencia</span> 
-            </motion.h1>
-            <motion.p
-            initial={{ opacity: 0, y:20 }}
-            animate={{ opacity:1, y:0 }}
-            transition={{ duration: 1 }}
-            className='text-lg md:text-xl max-w-2xl text-gray-800'>
-                Multiplica tu dinero con propiedades seleccionadas para inversión
-            </motion.p>
-            </div>
+       {/* HERO */}
+      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-4 md:px-16 py-12 bg-gradient-to-r sm:min-h-180px min-h-[280px] from-[#2d7195] to-[#0077B6] text-center">
+      <div className='text-center mt-6 md:mt-0'>
+      <motion.h1
+      initial={{ opacity: 0, y:-20 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration: 0.8 }}
+      className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
+        Invierte con <span className="text-gray-900">Inteligencia</span></motion.h1>
+        <motion.p 
+        initial={{ opacity: 0, y:20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 1 }}
+        className="text-base md:text-lg text-slate-800">Multiplica tu dinero con propiedades seleccionadas para inversión
+        </motion.p>
+        </div>
+         <motion.img 
+         src={grafica} 
+         alt="grafica"
+        initial={{ opacity: 0, y:-20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 0.8 }} 
+         className="w-full sm:w-full md:w-1/2 h-60 max-h-64 object-contain"/>
+      </section> 
                       {/* Filtros */}
                       <div className="flex flex-wrap overflow-x-auto px-4 py-2 items-center justify-center gap-3">
                       <div className="relative w-full sm:w-72">
@@ -154,24 +163,29 @@ const Invest = () => {
                               {currentProperties.length === 0 ? (
                               <p className='text-gray-600 text-center mb-10'>No hay propiedades que coincidan con los filtros.</p>
                               ) : (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-                                {currentProperties.map((property) => (
-                                <div key={property.id}>
-                                    <PropertyCard 
-                                    property={property} 
-                                    onClick={() => setSelectedProperty(property)} 
-                                    />
-                                    <p className="font-semibold text-center text-sm text-green-700">ROI: {property.roi === 'N/A' ? 'Cargando...' : `${property.roi}%`}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+                                  {currentProperties.map((property) => {
+                                    return (
+                                      <div key={property.id}>
+                                        <PropertyCard 
+                                          property={property} 
+                                          onClick={() => setSelectedProperty(property)} 
+                                        />
+                                          <p>
+                                            ROI anual: {property.roi !== 'N/A' && !isNaN(property.roi) ? <ROIValue value={property.roi} /> : 'N/A'}
+                                          </p>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                                ))}
-                              </div>
                               )}
                                 {/* PropertyModal*/}
-                                <PropertyModal 
-                                isOpen={!!selectedProperty} 
-                                onClose={() => setSelectedProperty(null)} 
-                                property={selectedProperty} 
-                                />
+                                {selectedProperty && (
+                                  <PropertyModal
+                                    property={selectedProperty}
+                                    onClose={() => setSelectedProperty(null)}
+                                  />
+                                )}
                               {/* PAGINATION */}
                               <div className='flex justify-center items-center gap-2 mt-4'>
                               <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}

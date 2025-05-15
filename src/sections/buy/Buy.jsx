@@ -4,7 +4,9 @@
     import PropertyCard from '../../components/Propertycard.js';
     import PropertyModal from '../../components/PropertyModal.jsx';
     import { motion } from 'framer-motion'
-    import house from '../../assets/images/house-white.png';
+    import house from '../../assets/images/casa-slate.png';
+    import { useEffect } from 'react';
+    import Spinner from '../../components/Spinner.jsx';
 
     function Buy(){
     const [minPrice, setMinPrice] = useState('');
@@ -15,8 +17,32 @@
     const [selectedProperty, setSelectedProperty] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const propertiesPerPage = 6;
+    const [roiData, setRoiData] = useState([]);
+    const [fullProps, setFullProps] = useState(properties);
+    const [loading, setLoading] = useState(true);
 
-    const filteredProperties = properties
+      useEffect(() => {
+      fetch('https://script.google.com/macros/s/AKfycbzSUx1ZBR-jBlGpQQF6deWkRC0HgRJmLhYqhNf0YPyIEgTM0Cz5lIaFf0u93MKQwOPX/exec')
+      .then(res => res.json())
+      .then(data => {
+      setRoiData(data);
+      setLoading(false);
+      })
+      .catch(err => console.error('Error:', err));
+      }, []);
+
+    useEffect(() => {
+      const roiMap = Object.fromEntries(roiData.map(r => [Number(r.id), r.ROI]));
+      const merged = properties.map(prop => ({
+        ...prop,
+        roi: roiMap[prop.id] !== undefined ? parseFloat(roiMap[prop.id]).toFixed(2) : 'N/A'
+      }));
+      setFullProps(merged);
+    }, [roiData]);
+
+    if (loading) return <Spinner />;
+
+      const filteredProperties = fullProps
     .filter((property) => property.category === 'venta') 
     .filter((property) => {
         const searchTermLower = searchTerm.toLowerCase().trim();
@@ -40,36 +66,35 @@
     });
 
       const indexOfLastProperty = currentPage * propertiesPerPage;
-        const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
-        const currentProperties = filteredProperties.slice(indexOfFirstProperty, indexOfLastProperty);
+      const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
+      const currentProperties = filteredProperties.slice(indexOfFirstProperty, indexOfLastProperty);
 
     return (
         <>
-                    {/* HERO */}
-                    <div className='bg-black/50 w-full py-20 px-6 h-full text-slate-50 flex flex-col items-center bg-gradient-to-r from-[#2d7195] to-[#0077B6]'>
-                    <motion.h1
-                    initial={{ opacity: 0, y:-20 }}
-                    animate={{ opacity:1, y:0 }}
-                    transition={{ duration: 0.8 }}
-                    className='text-4xl md:text-5xl font-bold mb-4'
-                    >Encuentra tu nuevo <span className="text-gray-900">Hogar</span>
-                    </motion.h1>
-                    <motion.img 
-                    src={house} 
-                    alt="House"
-                    initial={{ opacity: 0, y:-20 }}
-                    animate={{ opacity:1, y:0 }}
-                    transition={{ duration: 0.8 }} 
-                    className="w-full sm:w-full md:w-1/2 h-auto max-h-64 object-contain"/>
-                    <motion.p
-                    initial={{ opacity: 0, y:20 }}
-                    animate={{ opacity:1, y:0 }}
-                    transition={{ duration: 1 }}
-                    className='text-lg md:text-xl max-w-2xl text-gray-800'>
-                    Empieza a explorar propiedades
-                    </motion.p>
-                    </div>
-                {/* Filtros y Propiedades */}
+      {/* HERO */}
+      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-4 md:px-16 py-12 bg-gradient-to-r sm:min-h-180px min-h-[280px] from-[#2d7195] to-[#0077B6] text-center">
+      <div className='text-center mt-6 md:mt-0'>
+      <motion.h1
+      initial={{ opacity: 0, y:-20 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration: 0.8 }}
+      className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
+        Encuentra tu nuevo <span className="text-gray-900">Hogar</span></motion.h1>
+        <motion.p 
+        initial={{ opacity: 0, y:20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 1 }}
+        className="text-base md:text-lg text-slate-800">Empieza a explorar Propiedades</motion.p>
+        </div>
+         <motion.img 
+         src={house} 
+         alt="House"
+        initial={{ opacity: 0, y:-20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 0.8 }} 
+         className="w-full sm:w-full md:w-1/2 h-60 max-h-64 object-contain"/>
+      </section> 
+        {/* Filtros y Propiedades */}
         <div className="bg-slate-50">
         <div className="bg-white rounded-xl p-4 shadow-lg mb-8 w-full max-w-3xl mx-auto">
           {/* Filtros */}
