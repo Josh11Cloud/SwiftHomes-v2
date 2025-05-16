@@ -16,6 +16,19 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+thead tr {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

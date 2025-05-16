@@ -8,12 +8,12 @@ function Navbar() {
     navigate('/favoritos');
   };
   return (
-      <nav className="flex items-center justify-start gap-4 mb-4 sm:mb-0 w-full px-4 py-2 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-start gap-2 mb-4 sm:mb-0 w-full px-4 py-2 sm:px-6 lg:px-8">
+        <nav className="flex flex-col sm:flex-row items-center justify-between w-full px-4 py-4 sm:px-6 lg:px-8 bg-white shadow-sm">
+        <div className="flex items-center gap-3 mb-4 sm:mb-0">
           <img className="h-16 sm:h-12 md:h-16 w-auto" src={logo} alt="Logo" />
             <h1 className="text-1xl font-bold text-[#212529] sm:text-2xl md:text-3xl lg:text-4xl">SwiftHomes</h1>
         </div>
-            <ul className="flex flex-col sm:flex-row justify-between items-center gap-4 text-base sm:text-lg font-semibold text-[#212529]">
+            <ul className="flex flex-col sm:flex-row items-center gap-4 text-base sm:text-lg font-semibold text-[#212529]">
               <Link className='hover:text-[#0077b6] transition' to="/">Inicio</Link>
               <Link className="hover:text-[#0077b6] transition" to="/comprar">Comprar</Link>
               <Link className="hover:text-[#0077b6] transition" to="/rentar">Rentar</Link>

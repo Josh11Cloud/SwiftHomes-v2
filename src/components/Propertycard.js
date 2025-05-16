@@ -3,10 +3,23 @@ import { Heart, MapPin, CircleParking, ShowerHead, BedSingle } from 'lucide-reac
 import { useFavorites } from '../context/FavoritesContext';
 import ROIHeader from '../sections/invest/ROIHeader';
 import ROIValue from '../sections/invest/ROIValue';
+import { useState, useRef } from 'react';
 
 const PropertyCard = ({ property, onClick }) => {
   const { favorites, toggleFavorite } = useFavorites();
   const isFavorite = favorites.some(favId => favId.trim() === String(property.id));
+
+  const setShowROIInfo = useState(false);
+  const roiInfoRef = useRef(null);
+
+  const handleShowInfo = () => {
+  setShowROIInfo(true);
+  setTimeout(() => {
+    if (roiInfoRef.current) {
+    roiInfoRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, 100);
+};
 
   return (
     <motion.div
@@ -36,7 +49,7 @@ const PropertyCard = ({ property, onClick }) => {
         <p className="font-bold text-[#0077B6] mt-2 text-lg">${property.price.toLocaleString('es-MX')}</p>
           <h2 className="text-sm text-gray-800 flex items-center gap-2 mb-4">
             Rentabilidad estimada (ROI anual) 
-            <ROIHeader />
+            <ROIHeader handleShowInfo={handleShowInfo} />
             <ROIValue value={property.roi} />
           </h2>
           </div>
