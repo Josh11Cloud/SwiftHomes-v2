@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SummaryCard from './Summarycard';
 import { Home, Heart, Percent } from 'lucide-react';
-import Spinner from '../Spinner';
+import Spinner from '../../components/Spinner';
 import { motion } from 'framer-motion';
 import Layout from '../../assets/images/layout.png';
 
