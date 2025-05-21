@@ -7,4 +7,5 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  presets: [require("tailwindcss/defaultConfig")],
 }

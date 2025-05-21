@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { Activity, Hourglass, Lightbulb, Scale, TrendingUp, Wallet } from "lucide-react";
+import { Activity, UploadCloud, Hourglass, Lightbulb, Scale, TrendingUp, Wallet } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 
 export default function PropertyForm() {
+
   const [imagenBase64, setImagenBase64] = useState("");
   const [resultados, setResultados] = useState(null); 
+  const { user } = useAuth();
+  const [isDragging, setIsDragging] = useState(false);
 
-  const [form, setForm] = useState({
+  const initialState = {
     nombre: "",
     ubicacion: "",
     precio: "",
@@ -22,6 +27,12 @@ export default function PropertyForm() {
     roi: null,
     paybackYears: null,
     isInvestment: null,
+    userId: user.uid
+  };
+
+  const [form, setForm] = useState({
+    ...initialState,
+    userId: user.uid
   });
 
   const handleChange = (e) => {
@@ -43,7 +54,7 @@ const validateForm = () => {
 
   for (const field of requiredFields) {
     if (!form[field]) {
-      alert(`El campo "${field}" es obligatorio`);
+      toast.error(`El campo "${field}" es obligatorio`);
       return false;
     }
   }
@@ -58,11 +69,11 @@ const validateForm = () => {
   for (const field of numericFields) {
     const value = Number(form[field]);
     if (isNaN(value) || value <= 0) {
-      alert(`El campo "${field}" debe ser un número mayor que 0`);
+      toast.error(`El campo "${field}" debe ser un número mayor que 0`);
       return false;
     }
     if (field !== "precio" && field !== "renta" && !Number.isInteger(value)) {
-      alert(`El campo "${field}" debe ser un número entero`);
+      toast.error(`El campo "${field}" debe ser un número entero`);
       return false;
     }
   }
@@ -70,82 +81,76 @@ const validateForm = () => {
   return true;
 };
 
-  const handleSubmit = async (e) => {
+  const handleDrop = (e) => {
   e.preventDefault();
+  setIsDragging(false);
 
-  if (!validateForm()) return;
-
-    const precio = Number(form.precio);
-    const renta = Number(form.renta);
-
-    const ingresosAnuales = renta * 12;
-    const roi = (ingresosAnuales / precio) * 100;
-    const paybackYears = precio / ingresosAnuales;
-    const isInvestment = roi > 5 && paybackYears <= 10;
-
-   
-  try {
-    const propertyData = {
-      ...form,
-      precio,
-      habitaciones: Number(form.habitaciones),
-      baños: Number(form.baños),
-      area: Number(form.area),
-      estacionamientos: Number(form.estacionamientos),
-      imagen: imagenBase64,
+    const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagenBase64(reader.result);
     };
-
-    if (form.categoria === "renta") {
-      const renta = Number(form.renta);
-      const ingresosAnuales = renta * 12;
-      const roi = (ingresosAnuales / precio) * 100;
-      const paybackYears = precio / ingresosAnuales;
-      const isInvestment = roi > 5 && paybackYears <= 10;
-
-      propertyData.roi = parseFloat(roi.toFixed(2));
-      propertyData.paybackYears = parseFloat(paybackYears.toFixed(1));
-      propertyData.isInvestment = isInvestment;
-
-      setResultados({
-        roi: parseFloat(roi.toFixed(2)),
-        paybackYears: parseFloat(paybackYears.toFixed(1)),
-        isInvestment,
-      });
-    }
-
-    await addDoc(collection(db, "propiedades"), propertyData);
-
-    alert("Propiedad Guardada con Éxito!");
-
-      setResultados({
-        roi: parseFloat(roi.toFixed(2)),
-        paybackYears: parseFloat(paybackYears.toFixed(1)),
-        isInvestment,
-      });
-
-      setForm({
-        nombre: "",
-        ubicacion: "",
-        precio: "",
-        renta: "",
-        tipo: "",
-        habitaciones: "",
-        baños: "",
-        area: "",
-        estacionamientos: "",
-        descripcion: "",
-        categoria: "",
-        roi: null,
-        paybackYears: null,
-        isInvestment: null,
-      });
-      setImagenBase64("");
-
-    } catch (error) {
-      console.error("Error al guardar la Propiedad", error);
-      alert("Hubo un error al guardar la Propiedad");
-    }
+    reader.readAsDataURL(file);
+  } else {
+    toast.error("Por favor, arrastra una imagen válida.");
+  }
   };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      const propertyData = {
+        ...form,
+        ...(form.categoria === "venta" && { precio: Number(form.precio) }),    
+        habitaciones: Number(form.habitaciones),
+        baños: Number(form.baños),
+        area: Number(form.area),
+        estacionamientos: Number(form.estacionamientos),
+        imagen: imagenBase64,
+      };
+
+      if (form.categoria === "renta") {
+        const renta = Number(form.renta);
+        const ingresosAnuales = renta * 12;
+        const roi = (ingresosAnuales / propertyData.precio) * 100;
+        const paybackYears = propertyData.precio / ingresosAnuales;
+        const isInvestment = roi > 5 && paybackYears <= 10;
+
+        propertyData.roi = parseFloat(roi.toFixed(2));
+        propertyData.paybackYears = parseFloat(paybackYears.toFixed(1));
+        propertyData.isInvestment = isInvestment;
+
+        setResultados({
+          roi: parseFloat(roi.toFixed(2)),
+          paybackYears: parseFloat(paybackYears.toFixed(1)),
+          isInvestment,
+        });
+      }
+
+      try {
+        await addDoc(collection(db, "propiedades"), propertyData);
+        toast.error("Propiedad Guardada con Éxito!");
+        setForm(prev => ({
+          ...initialState,
+          userId: prev.userId
+        }));
+        setImagenBase64("");
+        setResultados(null);
+      } catch (error) {
+        toast.error("Error al guardar la Propiedad" + error);
+      }
+    };
 
   const handleImagenBase64 = (e) => {
     const file = e.target.files[0];
@@ -160,8 +165,18 @@ const validateForm = () => {
     }
   };
 
+  if (Number(form.precio) > 1000000000) {
+  toast.error("El precio parece excesivamente alto. Verifica el valor ingresado.");
+  return;
+  }
+
+  if (!user) return <p className="text-center mt-10">Debes de tener una cuenta para publicar una propiedad.</p>;
+
    return (
     <div>
+    <div className='bg-slate-50'>
+      <div className="min-h-screen bg-slate-100 mx-auto max-w-[800px]">
+          <h1 className="text-2xl text-center p-4 font-bold text-gray-800">Agregar Propiedad</h1>
     <form onSubmit={handleSubmit} className="p-4 max-w-xl mx-auto space-y-4">
       <h2 className="text-xl font-semibold text-[#0077B6]">Información General</h2>
 
@@ -304,15 +319,37 @@ const validateForm = () => {
         />
       </label>
 
-      <label className="block">
-        Imagen
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImagenBase64}
-          className="block w-full mt-1 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
-        />
+     <div
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${
+        isDragging ? "bg-blue-100 border-blue-400" : "bg-white"
+      }`}
+    >
+    {imagenBase64 ? (
+      <img src={imagenBase64} alt="Vista previa" className="w-full max-h-64 object-contain mx-auto" />
+    ) : (
+    <div className="flex flex-col items-center text-gray-500">
+      <UploadCloud className="w-12 h-12 mb-2" />
+      <p>Arrastra y suelta una imagen aquí o haz clic para seleccionar</p>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImagenBase64}
+        className="hidden"
+        id="fileUpload"
+      />
+      <label
+        htmlFor="fileUpload"
+        className="mt-2 px-4 py-2 bg-[#0077b6] text-white rounded hover:bg-[#005f87]cursor-pointer"
+      >
+        Seleccionar Imagen
       </label>
+    </div>
+    )}
+  </div>
+
 
       <button
         type="submit"
@@ -368,5 +405,7 @@ const validateForm = () => {
         </div>
       )}
     </div>
+    </div>
+  </div>
   );
 }

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import WhySwiftHomes from '../../components/WhySwiftHomes';
 import { motion } from 'framer-motion';
 import BgImage from '../../assets/images/bg-1.jpg'
-import PropertyForm from '../../components/PropertyForm'
 
 function Home() {
   return (
@@ -74,12 +73,6 @@ function Home() {
       </div>
       </motion.div>
     </section>
-    <div className='bg-[#0077b6]'>
-        <div className="min-h-screen bg-slate-50 mx-auto max-w-[800px]">
-          <h1 className="text-2xl text-center p-4 font-bold text-gray-800">Agregar Propiedad</h1>
-          <PropertyForm />
-        </div>
-    </div>
     </>
   );
 }

@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, CircleParking, ShowerHead, BedSingle } from 'lucide-react';
+import { MapPin, CircleParking, ShowerHead, BedSingle, ChartNoAxesColumnIncreasing } from 'lucide-react';
 import PropertyModal from './PropertyModal';
 import ROIWithTooltip from "../sections/invest/ROITootlip";
 
-export default function PropertyList({ property, setSelectedProperty, showROI }) {
+export default function PropertyList({ property, showROI, isInvestSection }) {
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   const abrirModal = () => {
     setSelectedProperty(property);
     setModalAbierto(true);
   };
-  return (
+  
+
+if (!property || !property.imagen) {
+  return <p>No hay imagen disponible</p>;
+  }  
+
+return (
     <>
       <motion.div
         layout
@@ -35,11 +42,29 @@ export default function PropertyList({ property, setSelectedProperty, showROI })
             <p>{property.habitaciones}</p>
             <span className='text-sm text-gray-500'>{property.area}m²</span>
           </div>
-          <p className="font-bold text-[#0077B6] mt-2 text-lg">{property.categoria === 'renta' ? `$${Number(property.renta).toLocaleString()} ` : `$${Number(property.precio).toLocaleString('es-MX')}`}</p>
-          <p className="font-semibold">ROI: <ROIWithTooltip value={property.roi} /></p>
-        </div>
+          <p className="font-bold text-[#0077B6] mt-2 text-lg">
+          {property.categoria === 'renta' ? `$${Number(property.renta).toLocaleString()}` : property.precio ? `$${Number(property.precio).toLocaleString('es-MX')}` : 'Precio no disponible'}
+          </p>
+              {showROI && (
+                <p className="font-semibold">ROI: <ROIWithTooltip value={property.roi} />
+                  {isInvestSection && property.roi && parseFloat(property.roi.replace('%', '').trim()) > 12 && (
+                    <span className="ml-2 bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
+                      <ChartNoAxesColumnIncreasing />  Oportunidad
+                    </span>
+                  )}
+                </p>
+              )}
+              {showROI && (
+                <p>Rentabilidad Anual: {property.rentabilidadAnual}%</p>
+              )}
+              {isInvestSection && property.añosDeRetorno && (
+                <span className="text-sm text-gray-500">
+                  ({property.añosDeRetorno} años para recuperar inversión)
+                </span>
+              )}
+          </div>
       </motion.div>
-      <PropertyModal propiedad={property} abierto={modalAbierto} cerrar={() => setModalAbierto(false)} />
+      <PropertyModal propiedad={selectedProperty} abierto={modalAbierto} cerrar={() => setModalAbierto(false)} />
     </>
   );
 }

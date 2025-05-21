@@ -23,7 +23,7 @@ export default function PropertyModal({ propiedad, abierto, cerrar }){
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.25 }}
-            className="bg-white p-6 rounded-xl max-w-lg z-10 shadow-xl relative"
+            className="bg-slate-50 p-6 rounded-xl z-10 shadow-xl relative max-w-2xl"
           >
             <span
               className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-900"

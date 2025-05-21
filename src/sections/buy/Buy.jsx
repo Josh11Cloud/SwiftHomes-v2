@@ -5,6 +5,7 @@ import Spinner from '../../components/Spinner.jsx';
 import { db } from "../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
+import { toast } from 'sonner';
 
 function Buy() {
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ function Buy() {
         setFullProps(fetchedProperties);
         setLoading(false);
       } catch (error) {
-        console.error("Error al obtener propiedades:", error);
+        toast.error("Error al obtener propiedades:" + error);
         setLoading(false);
       }
     };
@@ -71,7 +72,8 @@ function Buy() {
 
       {/* PROPIEDADES */}
       <PropertiesPerPage
-        properties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === 'venta')}
+        properties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta")}
+        category="venta"
         propertiesPerPage={propertiesPerPage}
       />
     </>

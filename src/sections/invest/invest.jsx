@@ -5,6 +5,7 @@ import Spinner from '../../components/Spinner.jsx';
 import { db } from "../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
+import { toast } from 'sonner';
 
 function Invest() {
   const [loading, setLoading] = useState(true);
@@ -24,12 +25,11 @@ useEffect(() => {
       const rois = await res.json();
 
       const propiedadesConROI = propiedades.map(prop => {
-      const roiData = rois.slice(1).find(r => r[0] === prop.sheetId.toString());
-      rois.forEach(roi => {
-      });
+        const roiData = rois.slice(1).find(r => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
         return {
           ...prop,
-        roi: roiData ? roiData[5] : null,
+          roi: roiData ? roiData[5] : null,
+          rentabilidadMensual: roiData ? (parseFloat(roiData[6]) * 100).toFixed(2) : null,
         };
       });
 
@@ -37,7 +37,7 @@ useEffect(() => {
       setLoading(false);
 
     } catch (error) {
-      console.error("Error cargando propiedades o ROI:", error);
+      toast.error("Error cargando propiedades o ROI:"+ error);
     }
   };
 

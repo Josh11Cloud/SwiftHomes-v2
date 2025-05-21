@@ -6,8 +6,8 @@ export default function ROIWithTooltip({ value }) {
     <Tooltip.Provider>
       <Tooltip.Root>
         <Tooltip.Trigger asChild>
-          <span className="cursor-help font-semibold text-sm text-green-600">
-            <ROIValue value={value.replace('%', '')} />
+          <span className="cursor-help font-semibold text-sm text-green-700">
+          <ROIValue value={typeof value === 'string' ? value.replace('%', '') : value} />          
           </span>
         </Tooltip.Trigger>
         <Tooltip.Portal>

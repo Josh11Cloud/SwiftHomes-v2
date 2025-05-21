@@ -6,12 +6,15 @@ import Contact from './sections/contact/ContactUs';
 import Home from './sections/home/home';
 import Dashboard from './components/Dashboard/Dashboard';
 import properties from './data/properties.json';
+import { Toaster } from "react-hot-toast";
+
 
 function App() {
   return (
     <Router>
       <Navbar />
       <main className="min-h-screen">
+        <Toaster position="top-right" reverseOrder={false} />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/comprar" element={<Buy />} />
