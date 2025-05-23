@@ -6,6 +6,8 @@ import { doc, query, where, getDocs, collection, deleteDoc } from "firebase/fire
 import { Trash2, Pencil } from "lucide-react";
 import EditProperty from "./EditPropertyForm";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import casas from '../assets/images/casas-image.png'
 
 function MyProperties() {
   const { user } = useAuth();
@@ -54,12 +56,36 @@ function MyProperties() {
     fetchProperties();
   }, [user]);
 
-  if (!user) return <p>No estas registrado.</p>;
-  if (loading) return <p>Cargando propiedades...</p>;
+  if (!user) return  <p className='text-gray-600 text-sm text-center'>No estas registrado.</p>
+  if (loading) return  <p className='text-gray-600 text-sm text-center'>Cargando propiedades.</p>;
 
- return (
-    <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+ return (    
+ <div>
+      {/* HERO */}
+        <section className="flex flex-col-reverse md:flex-row items-center justify-between px-4 md:px-16 py-12 bg-gradient-to-r sm:min-h-180px min-h-[280px] from-[#2d7195] to-[#0077B6] text-center">
+        <div className='text-center mt-6 md:mt-0'>
+        <motion.h1
+        initial={{ opacity: 0, y:-20 }}
+        animate={{ opacity:1, y:0 }}
+        transition={{ duration: 0.8 }}
+        className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
+          Supervisa, edita y potencia tus <span className="text-gray-900">Propiedades</span></motion.h1>
+          <motion.p 
+          initial={{ opacity: 0, y:20 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ duration: 1 }}
+          className="text-base md:text-lg text-slate-800">Consulta el estado de tus propiedades, edita detalles y haz seguimiento.
+          </motion.p>
+          </div>
+           <motion.img 
+           src={casas} 
+           alt="casas"
+          initial={{ opacity: 0, y:-20 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ duration: 0.8 }} 
+           className="w-full sm:w-full md:w-1/2 h-60 max-h-64 object-contain"/>
+        </section> 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10">
         {properties.map((property) => (
           <div key={property.id}>
             <PropertyList property={property} />

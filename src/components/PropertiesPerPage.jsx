@@ -32,75 +32,61 @@ const PropertiesPerPage = ({
   const fullProps = properties;
 
   const filteredProperties = fullProps
-    .filter(filterByCategory)
-    .filter((prop) => {
-      const searchTermLower = searchTerm.toLowerCase().trim();
-      const minPriceValue = minPrice === "" ? 0 : Number(minPrice);
-      const maxPriceValue = maxPrice === "" ? Infinity : Number(maxPrice);
-      const matchesPrice =
-        Number(prop.precio) >= minPriceValue &&
-        Number(prop.precio) <= maxPriceValue;
-      const cumpleAños =
-        minAñosRetorno === "" ||
-        (prop.mesesDeRetorno ?? Infinity) / 12 >= Number(minAñosRetorno);
-      const cumpleRentabilidad =
-        minRentabilidadAnual === "" ||
-        parseFloat(prop.rentabilidadAnual) >= parseFloat(minRentabilidadAnual);
-      console.log(
-        `Min Rentabilidad Mensual: ${minRentabilidadAnual}, Rentabilidad Mensual de la propiedad: ${
-          prop.rentabilidadMensual * 100
-        }, Cumple Rentabilidad: ${cumpleRentabilidad}`
-      );
-      const matchesSearchTerm =
-        prop.ubicacion?.toLowerCase().includes(searchTermLower) ||
-        prop.tipo?.toLowerCase().includes(searchTermLower);
-      const matchesPropertyType =
-        propertyType === "" ||
-        prop.tipo?.toLowerCase().trim() === propertyType.toLowerCase().trim();
-      return (
-        matchesPrice &&
-        (searchTerm === "" || matchesSearchTerm) &&
-        matchesPropertyType &&
-        cumpleAños &&
-        cumpleRentabilidad
-      );
-    })
-    .sort((a, b) => {
-      if (sortOrder === "desc") {
-        return Number(b.precio) - Number(a.precio);
-      } else if (sortOrder === "asc") {
-        return Number(a.precio) - Number(b.precio);
-      } else {
-        return 0;
-      }
-    });
+  .filter(filterByCategory)
+  .filter((prop) => {
+    const cumpleRentabilidad =
+    minRentabilidadAnual === "" ||
+    (minRentabilidadAnual !== "" &&
+    parseFloat(String(prop.rentabilidadAnual)) >=
+    parseFloat(minRentabilidadAnual) / 100);
+    const searchTermLower = searchTerm.toLowerCase().trim();
+    const minPriceValue = minPrice === "" ? 0 : Number(minPrice);
+    const maxPriceValue = maxPrice === "" ? Infinity : Number(maxPrice);
+    const matchesPrice =
+      Number(prop.precio) >= minPriceValue &&
+      Number(prop.precio) <= maxPriceValue;
+    const cumpleAños =
+      minAñosRetorno === "" ||
+      prop.añosDeRetorno >= Number(minAñosRetorno);
+    const matchesSearchTerm =
+      prop.ubicacion?.toLowerCase().includes(searchTermLower) ||
+      prop.tipo?.toLowerCase().includes(searchTermLower);
+    const matchesPropertyType =
+      propertyType === "" ||
+      prop.tipo?.toLowerCase().trim() === propertyType.toLowerCase().trim();
+    return (
+      matchesPrice &&
+      (searchTerm === "" || matchesSearchTerm) &&
+      matchesPropertyType &&
+      cumpleAños &&
+      cumpleRentabilidad
+    );
+  })
+  .sort((a, b) => {
+    if (sortOrder === "desc") {
+      return Number(b.precio) - Number(a.precio);
+    } else if (sortOrder === "asc") {
+      return Number(a.precio) - Number(b.precio);
+    } else {
+      return 0;
+    }
+  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
-  const filteredPropertiesWithMesesDeRetorno = showROI
+  const filteredPropertiesWithAñosDeRetorno = showROI
     ? filteredProperties.map((prop) => {
-        const roiValue = parseFloat(prop.roi.replace("%", "").trim()) / 100;
-        const mesesDeRetorno =
-          roiValue && !isNaN(roiValue) && roiValue !== 0
-            ? Math.round(100 / roiValue / 12)
-            : null;
+        const rentabilidadAnual = prop.rentabilidadAnual;
         return {
           ...prop,
-          mesesDeRetorno,
+          rentabilidadAnual: rentabilidadAnual ? `${(parseFloat(rentabilidadAnual) * 100).toFixed(2)}%` : null,
         };
       })
     : filteredProperties;
 
-  const finalFilteredProperties = filteredPropertiesWithMesesDeRetorno.filter(
-    (prop) => {
-      const cumpleAños =
-        minAñosRetorno === "" ||
-        (prop.mesesDeRetorno ?? Infinity) >= Number(minAñosRetorno);
-      return cumpleAños;
-    }
-  );
+  const finalFilteredProperties = filteredPropertiesWithAñosDeRetorno;
 
   if (finalFilteredProperties && roiOrder) {
     finalFilteredProperties.sort((a, b) => {
@@ -246,7 +232,7 @@ const PropertiesPerPage = ({
                       <input
                         type="number"
                         value={minAñosRetorno}
-                        placeholder="Min. Meses de Retorno"
+                        placeholder="Min. Años de Retorno"
                         onChange={(e) => {
                           setMinAñosRetorno(e.target.value);
                           setCurrentPage(1);
@@ -265,7 +251,6 @@ const PropertiesPerPage = ({
                       type="number"
                       value={minRentabilidadAnual}
                       onChange={(e) => {
-                        console.log(`Valor seleccionado: ${e.target.value}`);
                         setMinRentabilidadAnual(e.target.value);
                         setCurrentPage(1);
                       }}

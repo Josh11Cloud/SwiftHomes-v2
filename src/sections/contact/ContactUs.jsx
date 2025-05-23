@@ -3,18 +3,20 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Mail, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import correo from '../../assets/images/correo.png'
+import SimpleBot from '../../components/SimpleBot';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: '',
+    tipoConsulta: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const handleChange = (e) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -25,23 +27,27 @@ export default function ContactSection() {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("message", formData.message);
 
-      try {
-        await fetch('https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg3hB8okVV5HPjH-6LyNxSve1tu3HSmWfqbc1YXHFLuCzsv5bEFSjmwpJ_NlKabTBTGifvzw_gndU7UaUcLk26fsGMm9R-tw4lCpv89uNgyAVmXDerviedXp1h17gQBeINmQGDIJVFOSRsBpo6fDo60jYIQDUjG-VRqgRC90ugQbz3S-NW92X1N-H70svFhWSjiVgPcajhqW48tU7U4NgUxW4yUnk4X6hP8IFfJcce_XcJMGA_BkIMkJ0HnyaMU8tOQizke-zhCNUZVV6IkooIppsaPUpX3Um22Kubc&lib=MHvilX95sblhMXEkQkg5WOAaK-5ggeP_m', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-
-        toast.success('¡Mensaje enviado con éxito!');
-        setFormData({ name: '', email: '', message: '' });
-      } catch (error) {
-        toast.error('Hubo un error al enviar tu mensaje');
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
+     try {
+          await fetch('https://hooks.zapier.com/hooks/catch/21743463/2j6ziqf/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              tipoConsulta: formData.tipoConsulta,
+              message: formData.message,
+            }),
+          });
+  toast.success('¡Mensaje enviado con éxito!');
+  setFormData({ name: '', email: '', message: '' });
+} catch (error) {
+  toast.error('Hubo un error al enviar tu mensaje');
+} finally {
+  setIsSubmitting(false);
+}
+}
 
 return(
   <>
@@ -71,16 +77,18 @@ return(
     <div className="bg-white py-12 px-4 md:px-12" id="contact">
     <Toaster />
     <h2 className="text-3xl font-bold text-center text-[#0077B6] mb-4">Contáctanos</h2>  
-       <div className="space-y-2 text-sm text-gray-700 mb-4">
+       <div className="space-y-2 text-sm text-gray-700 mb-4 font-semibold">
         <div className="flex items-center justify-center gap-2">
           <Phone className="text-[#0077B6]" size={20} />
           <span>+52 33 2788 2862</span>
         </div>
         <div className="flex items-center justify-center gap-2">
           <Mail className="text-[#0077B6]" size={20} />
-          <span>swiftHomesContacto@gmail.com</span>
+          <span>swifthomes.mx@gmail.com</span>
         </div>
       </div>
+
+      <SimpleBot />
 
     {/* Formulario */}
         <form onSubmit={handleSubmit} className="bg-slate-100 p-6 rounded-2xl shadow space-y-4">
@@ -102,6 +110,19 @@ return(
             required
             className="w-full p-3 rounded-lg border border-gray-300 focus:outline-[#0077B6]"
           />
+          <select
+            name="tipoConsulta"
+            value={formData.tipoConsulta}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg p-2 focus:outline-[#0077B6]"
+          >
+            <option value="">Selecciona una opción</option>
+            <option value="propiedad">Quiero contactar por una propiedad</option>
+            <option value="problema">Reportar un problema</option>
+            <option value="consulta">Consulta general</option>
+            <option value="asesoria">Agendar asesoría</option>
+          </select>
           <textarea
             placeholder="Escribe tu mensaje..."
             name="message"

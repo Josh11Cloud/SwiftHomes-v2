@@ -1,9 +1,14 @@
 import { Dialog } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, CircleParking, ShowerHead, BedSingle, X } from 'lucide-react';
+import { MapPin, CircleParking, ShowerHead, BedSingle, X, Heart } from 'lucide-react';
+import { useFavorites } from '../context/FavoritesContext';
 
-export default function PropertyModal({ propiedad, abierto, cerrar }){
-    if (!propiedad) return null;
+export default function PropertyModal({ propiedad, abierto, cerrar, }){
+  const { favorites, toggleFavorite } = useFavorites();
+
+  if (!propiedad) return null;
+
+  const isFavorite = favorites.includes(String(propiedad.id));
 
  return (
      <AnimatePresence>
@@ -43,6 +48,23 @@ export default function PropertyModal({ propiedad, abierto, cerrar }){
             />
 
             <div className="flex flex-wrap gap-3 text-sm text-gray-600 items-center mb-2">
+            {propiedad && (
+            <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-3 right-5 p-2 rounded-full bg-slate-200 hover:scale-105"  
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(propiedad.id);
+            }}
+          >
+            {isFavorite ? (
+                <Heart size={25} fill="#0077b6" stroke="#0077b6" className="hover:fill-[#eeeeee]" />
+              ) : (
+                <Heart size={25} fill="#eeeeee" className="hover:fill-[#0077b6]"  />
+              )}
+            </motion.button>
+            )}
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4 text-[#0077b6]" />
                 <span>{propiedad.ubicacion}</span>

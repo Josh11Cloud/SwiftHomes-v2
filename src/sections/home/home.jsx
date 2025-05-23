@@ -1,8 +1,7 @@
-import hero from '../../assets/images/hero-png.png';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import WhySwiftHomes from '../../components/WhySwiftHomes';
 import { motion } from 'framer-motion';
-import BgImage from '../../assets/images/bg-1.jpg'
+import BgImage from '../../../public/assets/images/bg-1.jpg';
 
 function Home() {
   return (
@@ -23,7 +22,7 @@ function Home() {
         className="text-base md:text-lg text-slate-800">Tu plataforma inteligente para comprar o rentar propiedades</motion.p>
         </div>
          <motion.img 
-         src={hero} 
+         src='/public/assets/images/hero-png.png' 
          alt="Hero"
         initial={{ opacity: 0, y:-20 }}
         animate={{ opacity:1, y:0 }}
@@ -52,24 +51,21 @@ function Home() {
       Empieza a descubrir propiedades
     </h2>
     <div className="flex justify-center gap-4 mt-10 flex-wrap">
-      <Link
-        to="/comprar"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
-      >
-        Comprar
+      <Link href="/comprar" legacyBehavior>
+        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+          Comprar
+        </a>
       </Link>
-      <Link
-        to="/rentar"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
-      >
-        Rentar
+      <Link href="/rentar" legacyBehavior>
+        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+          Rentar
+        </a>
       </Link>
-      <Link
-        to="/inversiones"
-        className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition"
-      >
-        Inversiones
-       </Link>
+      <Link href="/inversiones" legacyBehavior>
+        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+          Inversiones
+        </a>
+      </Link>
       </div>
       </motion.div>
     </section>

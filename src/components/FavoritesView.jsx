@@ -1,10 +1,12 @@
+import { useContext } from 'react';
+import { PropertiesContext } from '../context/PropertiesContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { properties } from '../data/properties';
-import PropertyCard from '../components/Propertycard';
+import PropertyList from '../components/PropertyList';
 import { motion } from 'framer-motion';
 import corazon from '../assets/images/corazon.png';
 
 const FavoritesPage = () => {
+  const { properties } = useContext(PropertiesContext);
   const { favorites } = useFavorites();
 
   const favoriteProperties = properties.filter(property =>
@@ -41,7 +43,7 @@ const FavoritesPage = () => {
       {favoriteProperties.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {favoriteProperties.map(property => (
-            <PropertyCard key={property.id} property={property} />
+            <PropertyList key={property.id} property={property} />
           ))}
         </div>
       ) : (

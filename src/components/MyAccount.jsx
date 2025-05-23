@@ -43,12 +43,12 @@ function MyAccount() {
       animate={{ opacity:1, y:0 }}
       transition={{ duration: 0.8 }}
       className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
-        Invierte con <span className="text-gray-900">Inteligencia</span></motion.h1>
+        Tu espacio, tus <span className="text-gray-900">Decisiones</span></motion.h1>
         <motion.p 
         initial={{ opacity: 0, y:20 }}
         animate={{ opacity:1, y:0 }}
         transition={{ duration: 1 }}
-        className="text-base md:text-lg text-slate-800">Multiplica tu dinero con propiedades seleccionadas para inversión
+        className="text-base md:text-lg text-slate-800">Consulta tus actividades, actualiza tu información y mantente al día.
         </motion.p>
         </div>
          <motion.img 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import llave from '../../assets/images/llave.png';
-import Spinner from '../../components/Spinner.jsx';
-import { db } from "../../firebase/config.js";
+import llave from '../../../assets/images/llave.png';
+import Spinner from '../../../components/Spinner.jsx';
+import { db } from "../../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
-import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
+import PropertiesPerPage from '../../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
 
 function Rent() {

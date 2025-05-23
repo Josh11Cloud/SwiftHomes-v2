@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, CircleParking, ShowerHead, BedSingle, ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { MapPin, CircleParking, ShowerHead, BedSingle, ChartNoAxesColumnIncreasing, Clock, Heart } from 'lucide-react';
 import PropertyModal from './PropertyModal';
-import ROIWithTooltip from "../sections/invest/ROITootlip";
+import ROIWithTooltip from "../pages/sections/invest/ROITootlip";
+import { useFavorites } from '../context/FavoritesContext';
 
 export default function PropertyList({ property, showROI, isInvestSection }) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const { favorites, toggleFavorite } = useFavorites();
+  const isFavorite = favorites.includes(String(property.id));
 
   const abrirModal = () => {
     setSelectedProperty(property);
@@ -31,23 +34,40 @@ return (
 
         <div className="p-4 space-y-1">
           <h2 className="text-xl font-semibold text-gray-800">{property.nombre}</h2>
-          <div className="flex items-center space-x-1.5 text-sm text-gray-500">
+          <div className="flex items-center space-x-1.5 text-sm text-slate-400">
+          <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-3 right-5 p-2 rounded-full bg-slate-200 hover:scale-105"  
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(property.id);
+            }}
+          >
+            {isFavorite ? (
+                <Heart size={25} fill="#0077b6" stroke="#0077b6" className="hover:fill-[#eeeeee]" />
+              ) : (
+                <Heart size={25} fill="#eeeeee" className="hover:fill-[#0077b6]"  />
+              )}
+            </motion.button>
             <MapPin className="w-4 h-4 mr-1 text-[#0077b6]" />
             <p className='text-gray-700'>{property.ubicacion}</p>
             <CircleParking className="w-4 h-4 mr-1 text-[#0077b6]" />
-            <p>{property.estacionamientos}</p>
+            <p className="text-gray-700">{property.estacionamientos}</p>
             <ShowerHead className="w-4 h-4 mr-1 text-[#0077b6]" />
-            <p>{property.baños}</p>
+            <p className="text-gray-700">{property.baños}</p>
             <BedSingle className="w-4 h-4 mr-1 text-[#0077b6]" />
-            <p>{property.habitaciones}</p>
+            <p className="text-gray-700">{property.habitaciones}</p>
             <span className='text-sm text-gray-500'>{property.area}m²</span>
           </div>
           <p className="font-bold text-[#0077B6] mt-2 text-lg">
           {property.categoria === 'renta' ? `$${Number(property.renta).toLocaleString()}` : property.precio ? `$${Number(property.precio).toLocaleString('es-MX')}` : 'Precio no disponible'}
           </p>
+          {window.location.pathname === '/inversiones' && (
+          <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
               {showROI && (
                 <p className="font-semibold">ROI: <ROIWithTooltip value={property.roi} />
-                  {isInvestSection && property.roi && parseFloat(property.roi.replace('%', '').trim()) > 12 && (
+                  {isInvestSection && property.roi && parseFloat(property.roi.replace('%', '').trim()) > 10 && (
                     <span className="ml-2 bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
                       <ChartNoAxesColumnIncreasing />  Oportunidad
                     </span>
@@ -55,13 +75,19 @@ return (
                 </p>
               )}
               {showROI && (
-                <p>Rentabilidad Anual: {property.rentabilidadAnual}%</p>
-              )}
-              {isInvestSection && property.añosDeRetorno && (
-                <span className="text-sm text-gray-500">
-                  ({property.añosDeRetorno} años para recuperar inversión)
-                </span>
-              )}
+                <p className="flex items-center">
+                  <ChartNoAxesColumnIncreasing size={20} className="mr-2 text-[#0077b6]" />
+                  Rentabilidad Anual: {property.rentabilidadAnual}
+                </p>             
+                  )}
+            {isInvestSection && property.plazoDelRetorno && (
+              <span className="text-sm text-gray-700 flex items-center">
+                <Clock size={20} className="mr-1 text-[#0077b6]" />
+                {property.plazoDelRetorno} para recuperar inversión.
+              </span>
+            )}
+              </div>
+            )}
           </div>
       </motion.div>
       <PropertyModal propiedad={selectedProperty} abierto={modalAbierto} cerrar={() => setModalAbierto(false)} />

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import grafica from '../../assets/images/barra-grafica.png';
-import Spinner from '../../components/Spinner.jsx';
-import { db } from "../../firebase/config.js";
+import grafica from '../../../assets/images/barra-grafica.png';
+import Spinner from '../../../components/Spinner.jsx';
+import { db } from "../../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
-import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
+import PropertiesPerPage from '../../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
 
 function Invest() {
@@ -13,6 +13,7 @@ function Invest() {
   const propertiesPerPage = 6;
 
 useEffect(() => {
+  let intervalId;
   const fetchData = async () => {
     try {
       const snapshot = await getDocs(collection(db, "propiedades"));
@@ -24,29 +25,37 @@ useEffect(() => {
       const res = await fetch("https://script.google.com/macros/s/AKfycbzedbE6kMBw5QEp94h-jfxyymxtEZrv0dh9OPqnRosiF9HDOKkx1VGXGT-FaVyw3-sI/exec");
       const rois = await res.json();
 
-      const propiedadesConROI = propiedades.map(prop => {
-        const roiData = rois.slice(1).find(r => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
-        return {
-          ...prop,
-          roi: roiData ? roiData[5] : null,
-          rentabilidadMensual: roiData ? (parseFloat(roiData[6]) * 100).toFixed(2) : null,
-        };
-      });
+    const propiedadesConROI = propiedades.map(prop => {
+      const roiData = rois.slice(1).find(r => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
+      const roiIndex = rois[0].indexOf('ROI');
+      const rentabilidadAnualIndex = rois[0].indexOf('Rentabilidad Anual');
+      const plazoDelRetornoIndex = rois[0].indexOf('Plazo del Retorno');
+      return {
+        ...prop,
+        roi: roiData ? roiData[roiIndex] : null,
+        rentabilidadAnual: roiData ? roiData[rentabilidadAnualIndex] : null,
+        plazoDelRetorno: roiData ? roiData[plazoDelRetornoIndex] : null,
+      };
+    });
 
       setFullProps(propiedadesConROI);
       setLoading(false);
 
     } catch (error) {
       toast.error("Error cargando propiedades o ROI:"+ error);
+      clearInterval(intervalId);
     }
   };
 
+
   fetchData();
 
-  const intervalId = setInterval(fetchData, 30000); 
-  return () => clearInterval(intervalId);
+    intervalId = setInterval(fetchData, 30000); 
+    return () => {
+      clearInterval(intervalId); 
+    };
+  }, []); 
 
-}, []); 
 
   if (loading) return <Spinner />;
 
