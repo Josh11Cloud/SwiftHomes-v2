@@ -1,16 +1,16 @@
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import Link from 'next/link'; 
+import { useRouter } from 'next/router';
 import Button from "./ui/button";
 import { LogOut, UserCircle } from "lucide-react";
 import EditProfileModal from "./EditProfileModal";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import usuario from '../assets/images/usuario.png'
 
 function MyAccount() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -52,7 +52,7 @@ function MyAccount() {
         </motion.p>
         </div>
          <motion.img 
-         src={usuario} 
+         src="/assets/images/usuario.png" 
          alt="usuario"
         initial={{ opacity: 0, y:-20 }}
         animate={{ opacity:1, y:0 }}
@@ -103,7 +103,7 @@ function MyAccount() {
 
         {/* Botón Ver Mis Propiedades */}
         <Link
-          to="/mis-propiedades"
+          href="/mis-propiedades"
           className="block text-center w-full bg-slate-200 hover:bg-slate-300 text-[#0077b6] font-medium py-2 rounded-xl transition"
         >
           Ver mis propiedades

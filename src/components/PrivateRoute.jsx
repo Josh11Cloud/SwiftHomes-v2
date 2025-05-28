@@ -1,14 +1,16 @@
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router-dom";
 
-function PrivateRoute({ children }) {
-  const { user } = useAuth();
+const PrivateRoute = () => {
+  const router = useRouter();
+  const { user } = useAuth(); 
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+};
 
 export default PrivateRoute;

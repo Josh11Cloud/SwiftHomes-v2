@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import grafica from '../../../assets/images/barra-grafica.png';
 import Spinner from '../../../components/Spinner.jsx';
-import { db } from "../../../firebase/config.js";
+import db from "../../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
 import PropertiesPerPage from '../../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
@@ -78,7 +77,7 @@ useEffect(() => {
         </motion.p>
         </div>
          <motion.img 
-         src={grafica} 
+         src="/assets/images/barra-grafica.png" 
          alt="grafica"
         initial={{ opacity: 0, y:-20 }}
         animate={{ opacity:1, y:0 }}

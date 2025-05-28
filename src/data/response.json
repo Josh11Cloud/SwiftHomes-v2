@@ -1,0 +1,46 @@
+[
+  {
+    "keywords": ["precio", "cuánto cuesta", "valor", "cuesta"],
+    "respuesta": "Los precios varían según la ubicación y tipo de propiedad. ¿Te gustaría ver propiedades en venta o en renta?"
+  },
+    {
+        "keywords": ["vender", "venda", "venta"],
+        "respuesta": "Para vender tu propiedad haz click en tu cuenta en la esquina superior derecha, haz click en 'Agregar Propiedad' y completa el formulario. ¡Te contactaremos pronto"
+    },
+    {
+        "keywords": ["comprar", "compra"],
+        "respuesta": "Para comprar, explora nuestras propiedades en la sección comprar. Puedes encontrar tu nuevo hogar filtrando por ubicacion, precio y más!."
+    },
+    {
+        "keywords": ["rentar", "renta", "alquiler"],
+        "respuesta": "Para alquilar una propiedad, ve a la sección de renta y filtra por ciudad o tipo de propiedad!."
+    },
+    {
+        "keywords": ["invertir", "inversiones", "inversión"],
+        "respuesta": "Puedes ver oportunidades de inversión en la sección de Inversiones, calculamos ROI, Rendimiento y Retorno estimado para ayudarte a tener un mejor futuro!"
+    },
+    {
+        "keywords": ["ayuda", "contacto", "contactar"],
+        "respuesta": "Necesitas ayuda? Ve a la sección de contacto, llena el formulario en base a tu petición y nos pondremos en contacto contigo."
+    },
+    {
+        "keywords": ["editar", "modificar", "cambiar", "eliminar", "borrar", "quitar"],
+        "respuesta": "Necesitas editar o eliminar una propiedad que publicaste? No te preocupes puedes ir a la sección de 'Mis Propiedades' dentro de tu Dashboard o puedes navegar hasta ahí haciendo click en tu cuenta en la esquina superior derecha y hacer click en 'Mis Propiedades', puedes modificar la información en el formulario o si necesitas eliminarla simplemente haz click en el icono de borrar y listo!."
+    },
+    {
+        "keywords": ["mi cuenta", "editar perfil", "editar información"],
+        "respuesta": "Puedes ver tu información o editar tu perfil en la seccion mi cuenta!."
+    },
+    {
+        "keywords": ["mis inversiones", "mis propiedades", "mis favoritos"],
+        "respuesta": "Puedes ver toda tu información de propiedades, inversiones o favoritos dentro de tu Dashboard, monitorea o busca propiedades con facilidad!"
+    },
+    {
+        "keywords": ["registro", "registrar", "crear cuenta", "cuenta nueva"],
+        "respuesta": "Puedes crear una cuenta desde la esquina superior derecha haciendo clic en 'Registrarse'."
+    },
+    {
+        "keywords": ["problema", "error", "bug"],
+        "respuesta": "Si detectaste un error, por favor repórtalo en la sección de contacto seleccionando 'Reportar problema'."
+    }
+]

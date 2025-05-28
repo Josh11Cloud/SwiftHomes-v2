@@ -1,13 +1,16 @@
-import { Navigate } from "react-router-dom";
+import { useRouter } from 'next/router';
 import { useAuth } from "../context/AuthContext";
+import Spinner from './Spinner'
 
 function AdminRoute({ children }) {
-  const { user, loading } = useAuth(); 
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) return <p className="text-center mt-10">Cargando...</p>;
+  if (loading) return <Spinner />;
 
   if (!user || user.role !== "admin") {
-    return <Navigate to="/" replace />;
+    router.replace("/");
+    return null;
   }
 
   return children;

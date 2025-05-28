@@ -1,7 +1,7 @@
 import { UploadCloud } from "lucide-react";
 import { useState, useEffect } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
+import db from "../firebase/config";
 import { toast } from "sonner"; 
 
 function EditProperty({ propiedad, abierto, cerrar, onSave }) {

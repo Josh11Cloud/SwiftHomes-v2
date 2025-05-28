@@ -1,30 +1,29 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/config";
-import { Link } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
 
 export default function Login(){
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
     const [ error, setError ] = useState("");
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
     
-            try {
+        try {
             await signInWithEmailAndPassword(auth, email, password);
             toast.success("¡Bienvenido de nuevo!");
-            navigate("/");
-            } catch (error) {
+            router.push("/");
+        } catch (error) {
             toast.error("Error al iniciar sesión: " + error.message);
-            }
-
+        }
     };
-
+    
     return (
         <div className="max-w-md mx-auto mt-20 p-6 bg-slate-50 rounded 2xl shadow-xl">
             <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
@@ -46,7 +45,7 @@ export default function Login(){
             </form>
             <p className="text-sm mt-4 text-center">
             ¿No tienes cuenta?{" "}
-            <Link to="/registro" className="text-black text-center hover:text-[#0077b6] underline">Regístrate</Link>
+            <Link href="/registro" className="text-black text-center hover:text-[#0077b6] underline">Regístrate</Link>
             </p>
         </div>
     );

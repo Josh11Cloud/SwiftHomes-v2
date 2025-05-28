@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { doc, updateDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
-import { db } from "../firebase/config";
+import db from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { Fragment } from "react";

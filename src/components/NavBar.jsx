@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import logo from '../../public/assets/icons/SwiftHomes-logo-png.png';
 import { UserCircle, UserRoundPlus } from 'lucide-react';
 import { useAuth } from "../context/AuthContext";
 import {
@@ -22,7 +21,7 @@ function Navbar() {
         <nav className="flex flex-col sm:flex-row items-center justify-between w-full px-4 py-4 sm:px-6 lg:px-8 bg-white shadow-sm">
         <div className="flex items-center gap-3 mb-4 sm:mb-0">
         <Link href="/">
-          <img className="h-16 sm:h-12 md:h-16 w-auto" src={logo} alt="Logo" />
+          <img className="h-16 sm:h-12 md:h-16 w-auto" src="/assets/icons/SwiftHomes-logo-png.png" alt="Logo" />
         </Link>
             <h1 className="text-1xl font-bold text-[#212529] sm:text-2xl md:text-3xl lg:text-4xl">SwiftHomes</h1>
         </div>
@@ -50,24 +49,24 @@ function Navbar() {
                       )}
                     </DropdownMenuTrigger>
                   <DropdownMenuContent className='bg-slate-100'>
-                    <DropdownMenuItem onClick={() => navigate("/micuenta")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/micuenta")} className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Mi cuenta
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/mis-propiedades")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/mispropiedades")} className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Mis propiedades
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/dashboard")}className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Mi Dashboard
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/favoritos")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/favoritos")}className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Mis Favoritos
                     </DropdownMenuItem>
                    {user?.role === "admin" && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/admin")}className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Panel Admin
                     </DropdownMenuItem>
                   )}
-                    <DropdownMenuItem onClick={() => navigate("/agregarpropiedad")} className='hover:bg-[#0077b6] hover:text-slate-50'>
+                    <DropdownMenuItem onClick={() => router.push("/agregarpropiedad")}className='hover:bg-[#0077b6] hover:text-slate-50'>
                       Agregar Propiedad
                     </DropdownMenuItem>
                     <DropdownMenuItem

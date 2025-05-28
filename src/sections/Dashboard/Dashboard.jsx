@@ -1,13 +1,12 @@
 import { useContext, useState, useEffect } from 'react';
-import { useFavorites } from '../../../context/FavoritesContext';
-import { PropertiesContext } from '../../../context/PropertiesContext'
-import PropertyList from '../../../components/PropertyList';
-import MyProperties from '../../../components/MyProperties';
+import { useFavorites } from '../../context/FavoritesContext';
+import { PropertiesContext } from '../../context/PropertiesContext'
+import PropertyList from '../../components/PropertyList';
+import MyProperties from '../../components/MyProperties';
 import Header from './Header';
-import Layout from '../../../assets/images/layout.png'
 import { motion } from 'framer-motion';
 import SummaryCard from './Summarycard'
-import Spinner from '../../../components/Spinner';
+import Spinner from '../../components/Spinner';
 import { Home, Heart, Percent, ChevronDown, ChevronUp } from 'lucide-react';
 
 const Dashboard = () => {
@@ -56,7 +55,7 @@ const Dashboard = () => {
             className="text-base md:text-lg text-slate-800">Monitorea tus propiedades guardadas, análisis de rentabilidad y automatizaciones en la vida.</motion.p>
         </div>
         <motion.img
-          src={Layout}
+          src="/assets/images/layout.png" 
           alt="Layout"
           initial={{ opacity: 0, y:-20 }}
           animate={{ opacity:1, y:0 }}

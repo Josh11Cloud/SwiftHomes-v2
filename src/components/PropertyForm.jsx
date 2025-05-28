@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
+import db from "../firebase/config";
 import { Activity, UploadCloud, Hourglass, Lightbulb, Scale, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";

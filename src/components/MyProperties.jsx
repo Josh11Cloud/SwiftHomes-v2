@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { db } from "../firebase/config";
+import db from "../firebase/config";
 import PropertyList from "./PropertyList";
 import { doc, query, where, getDocs, collection, deleteDoc } from "firebase/firestore";
 import { Trash2, Pencil } from "lucide-react";
 import EditProperty from "./EditPropertyForm";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import casas from '../assets/images/casas-image.png'
 
 function MyProperties() {
   const { user } = useAuth();
@@ -78,7 +77,7 @@ function MyProperties() {
           </motion.p>
           </div>
            <motion.img 
-           src={casas} 
+           src="/assets/images/casas-image.png" 
            alt="casas"
           initial={{ opacity: 0, y:-20 }}
           animate={{ opacity:1, y:0 }}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, CircleParking, ShowerHead, BedSingle, ChartNoAxesColumnIncreasing, Clock, Heart } from 'lucide-react';
 import PropertyModal from './PropertyModal';
-import ROIWithTooltip from "../pages/sections/invest/ROITootlip";
+import ROIWithTooltip from "../sections/invest/ROITootlip";
 import { useFavorites } from '../context/FavoritesContext';
 
 export default function PropertyList({ property, showROI, isInvestSection }) {

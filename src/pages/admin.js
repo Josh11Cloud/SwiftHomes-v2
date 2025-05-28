@@ -1,8 +1,10 @@
-import AdminDashboard from './sections/Admin/AdminDashboard';
+import AdminDashboard from '../sections/Admin/AdminDashboard';
+import AdminRoute from '../components/AdminRoute';
 
 export default function AdminDashboardPage() {
   return (
-    <PrivateRoute>
+    <AdminRoute>
       <AdminDashboard />
-    </PrivateRoute>
-  );}
+    </AdminRoute>
+  );
+}

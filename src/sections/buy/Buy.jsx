@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import house from '../../assets/images/casa-slate.png';
 import Spinner from '../../components/Spinner.jsx';
-import { db } from "../../firebase/config.js";
+import db from "../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
@@ -61,7 +60,7 @@ function Buy() {
           </motion.p>
         </div>
         <motion.img
-          src={house}
+         src="/assets/images/casa.png" 
           alt="House"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

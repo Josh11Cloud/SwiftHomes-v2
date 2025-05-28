@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import WhySwiftHomes from '../../components/WhySwiftHomes';
 import { motion } from 'framer-motion';
-import BgImage from '../../../public/assets/images/bg-1.jpg';
 
 function Home() {
   return (
@@ -22,7 +21,7 @@ function Home() {
         className="text-base md:text-lg text-slate-800">Tu plataforma inteligente para comprar o rentar propiedades</motion.p>
         </div>
          <motion.img 
-         src='/public/assets/images/hero-png.png' 
+         src="/assets/images/hero-png.png" 
          alt="Hero"
         initial={{ opacity: 0, y:-20 }}
         animate={{ opacity:1, y:0 }}
@@ -34,7 +33,7 @@ function Home() {
         <section 
           className='text-center py-60 w-full' 
           style={{
-            backgroundImage: `url(${BgImage})`,
+            backgroundImage: `url(/assets/images/bg-1.jpg)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat'

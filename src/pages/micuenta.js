@@ -1,9 +1,10 @@
 import MyAccount from '../components/MyAccount';
+import PrivateRoute from '../components/PrivateRoute';
 
-export default function MyAccountPage() {
-  return (
-    <PrivateRoute>
-      <MyAccount />
-    </PrivateRoute>
-  );
-}
+const MyAccountPage = () => {
+  PrivateRoute();
+
+  return <MyAccount />;
+};
+
+export default MyAccountPage;

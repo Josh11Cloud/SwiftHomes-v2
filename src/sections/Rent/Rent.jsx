@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import llave from '../../../assets/images/llave.png';
-import Spinner from '../../../components/Spinner.jsx';
-import { db } from "../../../firebase/config.js";
+import Spinner from '../../components/Spinner.jsx';
+import db from "../../firebase/config.js";
 import { getDocs, collection } from 'firebase/firestore';
-import PropertiesPerPage from '../../../components/PropertiesPerPage.jsx';
+import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
 
 function Rent() {
@@ -58,7 +57,7 @@ function Rent() {
             className="text-base md:text-lg text-slate-800">Empieza a explorar Propiedades</motion.p>
             </div>
              <motion.img 
-             src={llave} 
+             src="/assets/images/llave.png" 
              alt="Llave"
             initial={{ opacity: 0, y:-20 }}
             animate={{ opacity:1, y:0 }}

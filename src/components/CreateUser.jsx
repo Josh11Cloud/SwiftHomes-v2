@@ -1,17 +1,17 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/config"; 
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Link } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import toast from "react-hot-toast";
 import { doc, setDoc, } from "firebase/firestore";
-import { db } from "../firebase/config";
+import db from "../firebase/config";
 
 export default function CreateUser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const navigate = useRouter();
 
   const handleRegister = async (e) => {
   e.preventDefault();
@@ -61,7 +61,7 @@ export default function CreateUser() {
         </form>
            <p className="text-sm mt-4 text-center">
             ¿Ya tienes una cuenta?{" "}
-            <Link to="/login" className="text-black text-center hover:text-[#0077b6] underline">Iniciar Sesión</Link>
+            <Link href="/login" className="text-black text-center hover:text-[#0077b6] underline">Iniciar Sesión</Link>
             </p>
     </div>
   );

@@ -3,7 +3,6 @@ import { PropertiesContext } from '../context/PropertiesContext';
 import { useFavorites } from '../context/FavoritesContext';
 import PropertyList from '../components/PropertyList';
 import { motion } from 'framer-motion';
-import corazon from '../assets/images/corazon.png';
 
 const FavoritesPage = () => {
   const { properties } = useContext(PropertiesContext);
@@ -31,7 +30,7 @@ const FavoritesPage = () => {
             className="text-base md:text-lg text-slate-800">Guarda las opciones que más te gusten y compáralas fácilmente cuando estés listo para decidir.</motion.p>
             </div>
              <motion.img 
-             src={corazon} 
+             src="/assets/images/corazon.png" 
              alt="Corazón"
             initial={{ opacity: 0, y:-20 }}
             animate={{ opacity:1, y:0 }}

@@ -31,7 +31,7 @@ export default function PropertyModal({ propiedad, abierto, cerrar, }){
             className="bg-slate-50 p-6 rounded-xl z-10 shadow-xl relative max-w-2xl"
           >
             <span
-              className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-900"
+              className="absolute top-4 left-4 cursor-pointer text-gray-500 hover:text-[#0077b6]"
               onClick={cerrar}
             >
               <X size={24} />
