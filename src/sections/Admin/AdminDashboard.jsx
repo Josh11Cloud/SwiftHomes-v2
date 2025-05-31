@@ -8,6 +8,7 @@ import { doc, deleteDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import {
   Calendar,
+  EyeIcon,
   CrownIcon,
   DownloadIcon,
   FileUser,
@@ -167,12 +168,12 @@ export default function AdminDashboard() {
           </CSVLink>
         </div>
         <div className="flex justify-end mb-4">
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm text-md">
             <input
               type="checkbox"
               checked={mostrarArchivados}
               onChange={(e) => setMostrarArchivados(e.target.checked)}
-              className="accent-blue-500"
+              className="accent-blue-500 hover:scale-110"
             />
             Mostrar archivados
           </label>
@@ -183,18 +184,10 @@ export default function AdminDashboard() {
           <table className="w-full table-auto border border-gray-800 border-collapse">
             <thead className="text-slate-800">
               <tr className="bg-[#0077b6] text-lg text-center">
-                <th className="p-4 text-left w-1/4 border-r border-slate-50">
-                  Consulta
-                </th>
-                <th className="p-4 text-left w-1/4 border-r border-slate-50">
-                  Nombre
-                </th>
-                <th className="p-4 text-left w-1/4 border-r border-slate-50">
-                  Correo
-                </th>
-                <th className="p-4 text-left w-1/2 border-r border-slate-50">
-                  Mensaje
-                </th>
+                <th className="p-4 text-left w-1/4">Consulta</th>
+                <th className="p-4 text-left w-1/4">Nombre</th>
+                <th className="p-4 text-left w-1/4">Correo</th>
+                <th className="p-4 text-left w-1/2">Mensaje</th>
                 <th className="p-4 text-left w-1/4">Fecha</th>
                 <th className="p-4 text-center w-1/4">Acciones</th>
               </tr>
@@ -219,28 +212,44 @@ export default function AdminDashboard() {
                       i % 2 === 0 ? "bg-slate-200" : "bg-slate-100"
                     }`}
                   >
-                    <td className="p-4 text-left capitalize border-r border-slate-700">
-                      {lead.tipoConsulta}
-                    </td>
-                    <td className="p-4 text-left border-r border-slate-700">
-                      {lead.name}
-                    </td>
-                    <td className="p-4 text-left border-r border-slate-700 ">
-                      {lead.email}
-                    </td>
-                    <td className="p-4 text-left truncate max-w-xs border-r border-gray-300">
-                      {lead.message}
-                    </td>
-                    <td className="p-4 text-left border-l border-slate-700">
-                      {lead.fecha}
+                    <td className="p-4 text-left capitalize">
+                      {lead.tipoConsulta
+                        ? lead.tipoConsulta
+                        : "No especificado"}
                     </td>
                     <td className="p-4 text-left">
+                      {lead.name ? lead.name : "No especificado"}
+                    </td>
+                    <td className="p-4 text-left">
+                      {lead.email &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)
+                        ? lead.email
+                        : "Correo electrónico no válido"}{" "}
+                    </td>
+                    <td className="p-4 text-left truncate max-w-xs border-r border-gray-300">
+                      {lead.message ? lead.message : "No especificado"}
+                    </td>
+                    <td className="p-4 text-left">
+                      {lead.fecha ? lead.fecha : "No especificado"}
+                    </td>
+                    <td className="p-4 text-left">
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          setSelectedLead(lead);
+                          setShowModal(true);
+                        }}
+                        title="Ver detalles"
+                        className="text-sm hover:scale-105 px-3 py-1 rounded-md"
+                      >
+                        <EyeIcon className="text-[#0077b6]" size={30} />
+                      </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => toggleArchivado(lead.id, lead.archivado)}
                         title={lead.archivado ? "Restaurar" : "Archivar"}
                         className={`text-sm ${
-                          lead.archivado ? "bg-blue-600" : "bg-gray-400"
+                          lead.archivado ? "bg-[#0077b6]" : "bg-gray-400"
                         } hover:scale-105 px-3 py-1 rounded-md`}
                       >
                         <Folder className="text-slate-50" size={30} />
@@ -258,56 +267,55 @@ export default function AdminDashboard() {
                 ))
               )}
               {showModal && selectedLead && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      setShowModal(false);
+                    }
+                  }}
+                >
                   <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                     className="bg-slate-50 rounded-xl shadow-lg w-full max-w-lg relative h-auto"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      onClick={() => setShowModal(false)}
-                      className="absolute top-2 right-3 text-slate-50 hover:scale-105 text-2xl"
-                    >
-                      ×
-                    </button>
-                    <h2 className="text-xl font-bold bg-[#0077b6] text-gray-800 py-4 px-2 mb-6">
-                      Detalles del Lead
-                    </h2>
-                    <div className="space-y-3 text-left text-gray-700">
-                      <p className="flex items-center gap-2 justify-center">
-                        <FileUser
-                          className="text-[#0077b6] justify-center"
-                          size={20}
-                        />
+                    <div className="flex justify-between items-center bg-[#0077b6] text-gray-800 py-4 px-2 mb-6 rounded-t-xl">
+                      <h2 className="text-xl font-bold">Detalles del Lead</h2>
+                      <button
+                        onClick={() => setShowModal(false)}
+                        className="text-slate-50 hover:scale-110 text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="space-y-3 text-left text-gray-700 p-4">
+                      <p className="flex items-center gap-2">
+                        <FileUser className="text-[#0077b6]" size={20} />
                         <strong>Nombre:</strong> {selectedLead.name}
                       </p>
-                      <p className="flex items-center gap-2 justify-center">
-                        <Mail
-                          className="text-[#0077b6] justify-center"
-                          size={20}
-                        />
+                      <p className="flex items-center gap-2">
+                        <Mail className="text-[#0077b6]" size={20} />
                         <strong>Correo:</strong> {selectedLead.email}
                       </p>
-                      <p className="flex items-center gap-2 justify-center">
+                      <p className="flex items-center gap-2">
                         <LucideFileQuestion
-                          className="text-[#0077b6] justify-center"
+                          className="text-[#0077b6]"
                           size={20}
                         />
                         <strong>Consulta:</strong> {selectedLead.tipoConsulta}
                       </p>
-                      <p className="flex items-center gap-2 justify-center">
+                      <p className="flex items-center gap-2">
                         <MessageCircleMore
-                          className="text-[#0077b6] justify-center"
+                          className="text-[#0077b6]"
                           size={20}
                         />
                         <strong>Mensaje:</strong> {selectedLead.message}
                       </p>
-                      <p className="flex items-center gap-2 justify-center">
-                        <Calendar
-                          className="text-[#0077b6] justify-center"
-                          size={20}
-                        />
+                      <p className="flex items-center gap-2">
+                        <Calendar className="text-[#0077b6]" size={20} />
                         <strong>Fecha:</strong> {selectedLead.fecha}
                       </p>
                     </div>

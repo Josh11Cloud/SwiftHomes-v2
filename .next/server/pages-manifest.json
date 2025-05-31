@@ -2,6 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/admin": "pages/admin.js"
+  "/inversiones": "pages/inversiones.js",
+  "/comprar": "pages/comprar.js",
+  "/mispropiedades": "pages/mispropiedades.js",
+  "/favoritos": "pages/favoritos.js"
 }

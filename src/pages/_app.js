@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
               <title>SwiftHomes</title>
               <link rel="icon" href="/assets/icons/SwiftHomes-logo-png.png" />
             </Head>
-            <Toaster position="top-right" reverseOrder={false} />
+            <Toaster reverseOrder={false} />
             <Navbar />
             <Component {...pageProps} />
             <Footer />
