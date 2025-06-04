@@ -3,10 +3,8 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import express from "express";
 import cors from "cors";
 import transporter from "../src/mailer/mailer.js";
-import multer from "multer";
-import bucket from "../src/firebase/firebase-admin.js";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import fetch from "node-fetch";
+import { doc, updateDoc } from "firebase/firestore";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +29,7 @@ app.post("/contacto", async (req, res) => {
       message,
       tipoConsulta,
       fecha: serverTimestamp(),
+      estado: "Nuevo",
     });
 
     const mailOptions = {
@@ -59,10 +58,6 @@ app.post("/contacto", async (req, res) => {
   }
 });
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-});
-
 app.post("/api/propiedades", async (req, res) => {
   try {
     const {
@@ -78,7 +73,19 @@ app.post("/api/propiedades", async (req, res) => {
       descripcion,
       categoria,
       imagen,
+      roi,
+      paybackYears,
+      isInvestment,
+      userId,
+      antiguedad,
+      financiamiento,
+      servicios,
+      precioNegociable,
     } = req.body;
+
+    if (!nombre || !ubicacion || !categoria) {
+      return res.status(400).json({ error: "Campos requeridos faltantes" });
+    }
 
     const propiedadesRef = collection(db, "propiedades");
     await addDoc(propiedadesRef, {
@@ -95,6 +102,23 @@ app.post("/api/propiedades", async (req, res) => {
       estacionamientos: Number(estacionamientos),
       renta: renta ? Number(renta) : null,
       fecha: serverTimestamp(),
+      roi: roi !== null && roi !== undefined ? Number(roi) : null,
+      paybackYears:
+        paybackYears !== null && paybackYears !== undefined
+          ? paybackYears
+          : null,
+      isInvestment:
+        isInvestment !== null && isInvestment !== undefined
+          ? isInvestment
+          : false,
+      userId,
+      antiguedad: antiguedad ? Number(antiguedad) : null,
+      financiamiento,
+      servicios,
+      precioNegociable:
+        precioNegociable !== null && precioNegociable !== undefined
+          ? precioNegociable
+          : false,
     });
 
     res.status(201).json({ mensaje: "Propiedad guardada con éxito" });
@@ -104,21 +128,32 @@ app.post("/api/propiedades", async (req, res) => {
   }
 });
 
-function calcularTags(property) {
-  const roiValue = parseFloat(property.roi?.replace("%", "").trim() || 0);
+app.patch("/api/propiedades/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const propiedadRef = doc(db, "propiedades", id);
+    await updateDoc(propiedadRef, req.body);
+    res.status(200).json({ mensaje: "Propiedad actualizada con éxito" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error interno", detalles: error.message });
+  }
+});
 
-  return {
-    ...property,
-    oportunidadInversion: roiValue >= 7,
-    oportunidadRemodelacion:
-      property.estado?.toLowerCase() === "para remodelar",
-    precioNegociable: property.precioNegociable === true,
-  };
-}
-
-const propiedadFinal = calcularTags(req.body);
-firebase.firestore().collection("propiedades").add(propiedadFinal)
-
+app.get("/api/propiedades", async (req, res) => {
+  try {
+    const propiedadesRef = collection(db, "propiedades");
+    const querySnapshot = await getDocs(propiedadesRef);
+    const propiedades = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    res.status(200).json(propiedades);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error interno", detalles: error.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor Express en http://localhost:${PORT}`);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -31,30 +31,55 @@ export default function PropertyList({ property, showROI, isInvestSection }) {
     return <p>No hay imagen disponible</p>;
   }
 
+  const fetchROI = async (prop) => {
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbzedbE6kMBw5QEp94h-jfxyymxtEZrv0dh9OPqnRosiF9HDOKkx1VGXGT-FaVyw3-sI/exec"
+    );
+    const rois = await res.json();
+    const roiData = rois
+      .slice(1)
+      .find((r) => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
+    const roiIndex = rois[0].indexOf("ROI");
+    return roiData ? roiData[roiIndex] : null;
+  };
+
+  const [roi, setRoi] = useState(null);
+
+  useEffect(() => {
+    const loadROI = async () => {
+      const roiValue = await fetchROI(property);
+      setRoi(roiValue);
+    };
+    loadROI();
+  }, [property]);
+
   const tags = [
     {
       id: "oportunidadInversion",
       label: "Oportunidad de Inversión",
       condition:
-        property.roi && parseFloat(property.roi.replace("%", "").trim()) >= 7,
+        roi !== null &&
+        roi !== undefined &&
+        !isNaN(parseFloat(roi)) &&
+        parseFloat(roi) >= 7,
       bg: "bg-green-200",
-      text: "text-green-800",
+      text: "text-green-600",
       icon: <ChartNoAxesCombined size={18} />,
     },
     {
       id: "oportunidadRemodelacion",
       label: "Oportunidad de Remodelar",
       condition: property.estado === "para remodelar",
-      bg: "bg-yellow-100",
-      text: "text-yellow-800",
-      icon: <Hammer size={18}/>,
+      bg: "bg-slate-200",
+      text: "text-yellow-600",
+      icon: <Hammer size={18} />,
     },
     {
       id: "precioNegociable",
       label: "Precio Negociable",
       condition: property.precioNegociable === true,
-      bg: "bg-sky-300",
-      text: "text-sky-800",
+      bg: "bg-slate-200",
+      text: "text-[#0077b6]",
       icon: <Handshake size={18} />,
     },
   ];
@@ -74,12 +99,13 @@ export default function PropertyList({ property, showROI, isInvestSection }) {
             {tags.map(
               (tag) =>
                 tag.condition && (
-                  <span
+                  <div
                     key={tag.id}
-                    className={`${tag.bg} ${tag.text} px-2 py-auto text-xs rounded-full font-semibold shadow inline-flex`}
+                    className={`flex px-2 py-auto text-xs rounded-full font-semibold shadow items-center gap-2 ${tag.bg} ${tag.text} px-2 py-1 rounded`}
                   >
-                    {tag.icon} <span className="ml-1">{tag.label}</span>
-                  </span>
+                    {tag.icon}
+                    <span>{tag.label}</span>
+                  </div>
                 )
             )}
           </div>

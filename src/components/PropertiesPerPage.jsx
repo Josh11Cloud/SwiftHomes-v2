@@ -80,10 +80,10 @@ const PropertiesPerPage = ({
         prop.ubicacion?.toLowerCase().includes(ubicacionFiltro.toLowerCase());
       const superficieValida =
         (!advancedFilters.superficieMin ||
-          prop.area >= advancedFilters.superficieMin) &&
+          prop.area >= Number(advancedFilters.superficieMin)) &&
         (!advancedFilters.superficieMax ||
-          prop.area <= advancedFilters.superficieMax);
-
+          prop.area <= Number(advancedFilters.superficieMax));
+          
       const antiguedadValida = (() => {
         const anios = prop.antiguedad;
         if (!advancedFilters.antiguedad) return true;

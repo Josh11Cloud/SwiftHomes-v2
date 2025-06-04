@@ -6,6 +6,8 @@ import {
   CalendarClock,
   DollarSign,
   FileText,
+  Handshake,
+  Hammer,
   House,
   Info,
   Landmark,
@@ -19,6 +21,7 @@ import {
   UploadCloud,
   WavesLadder,
 } from "lucide-react";
+import { addActivity } from "./AddActivity";
 import { calculateInvestmentMetrics } from "../sections/invest/invest";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
@@ -48,6 +51,7 @@ export default function PropertyForm() {
     financiamiento: false,
     servicios: [],
     remodelar: false,
+    precioNegociable: false,
   });
 
   const [services, setServices] = useState({
@@ -175,6 +179,13 @@ export default function PropertyForm() {
     }
   };
 
+  useEffect(() => {
+    const serviciosSeleccionados = Object.keys(services).filter(
+      (key) => services[key]
+    );
+    setForm((prev) => ({ ...prev, servicios: serviciosSeleccionados }));
+  }, [services]);
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -215,7 +226,7 @@ export default function PropertyForm() {
       descripcion: form.descripcion,
       categoria: form.categoria,
       imagen: imagenBase64,
-      antiguedad: form.antiguedad,
+      antiguedad: Number(form.antiguedad),
       financiamiento: form.financiamiento,
       servicios: Object.keys(services).filter((service) => services[service]),
       userId: user.email,
@@ -246,6 +257,11 @@ export default function PropertyForm() {
 
       if (response.ok) {
         toast.success("Propiedad publicada");
+        addActivity(
+          user.userId,
+          "published_property",
+          "El usuario ha publicado una propiedad"
+        );
         setForm({
           nombre: "",
           ubicacion: "",
@@ -263,8 +279,9 @@ export default function PropertyForm() {
           isInvestment: null,
           userId: user.email,
           antiguedad: "",
-          financiamiento: false,
+          financiamiento: form.financiamiento,
           servicios: [],
+          precioNegociable: form.precioNegociable,
         });
         setImagenBase64("");
         setImagenFile(null);
@@ -387,6 +404,20 @@ export default function PropertyForm() {
 
             <label className="block">
               <span className="flex items-center gap-2">
+                <Handshake size={18} className="text-[#0077b6]" />
+                ¿El precio es negociable?
+              </span>
+              <input
+                type="checkbox"
+                name="negociable"
+                checked={form.negociable}
+                onChange={handleChange}
+                className="h-4 w-4"
+              />
+            </label>
+
+            <label className="block">
+              <span className="flex items-center gap-2">
                 <Tags size={18} className="text-[#0077b6]" />
                 Tipo
               </span>
@@ -468,14 +499,15 @@ export default function PropertyForm() {
               <label className="block">
                 <span className="flex items-center gap-2">
                   <CalendarClock size={18} className="text-[#0077b6]" />
-                  Antiguedad
-                </span>{" "}
+                  Antigüedad (años)
+                </span>
                 <input
-                  type="number"
                   name="antiguedad"
+                  type="number"
+                  min="0"
                   value={form.antiguedad}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded mt-1 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                 />
               </label>
 
@@ -527,14 +559,17 @@ export default function PropertyForm() {
                     />
                   </label>
                   <label className="flex items-center gap-2">
+                    <span className="flex items-center gap-2">
+                      <Hammer size={18} className="text-[#0077b6]" />
+                      ¿Requiere remodelación?
+                    </span>
                     <input
                       type="checkbox"
                       name="remodelar"
                       checked={form.remodelar}
                       onChange={handleChange}
-                      className="form-checkbox h-5 w-5 text-[#0077B6]"
+                      className="h-4 w-4 text-[#0077B6] focus:ring-[#0077B6] border-gray-300 rounded hover:scale-105"
                     />
-                    <span className="text-sm">¿Requiere remodelación?</span>
                   </label>
                 </div>
               </div>

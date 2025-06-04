@@ -1,14 +1,15 @@
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 const PrivateRoute = () => {
   const router = useRouter();
-  const { user } = useAuth(); 
-
+  const auth = useAuth();
+  const user = auth?.user;
+  
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, router]);
 };

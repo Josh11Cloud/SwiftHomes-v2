@@ -51,17 +51,17 @@ function Home() {
     </h2>
     <div className="flex justify-center gap-4 mt-10 flex-wrap">
       <Link href="/comprar" legacyBehavior>
-        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+        <a className="bg-slate-50 text-gray-900 shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:text-slate-50 hover:bg-[#0077b6] transition">
           Comprar
         </a>
       </Link>
       <Link href="/rentar" legacyBehavior>
-        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+        <a className="bg-slate-50 text-gray-900 shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:text-slate-50 hover:bg-[#0077b6] transition">
           Rentar
         </a>
       </Link>
       <Link href="/inversiones" legacyBehavior>
-        <a className="bg-slate-50 text-black shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:bg-[#0077b6] transition">
+        <a className="bg-slate-50 text-gray-900 shadow-md rounded-xl px-6 h-10 flex items-center justify-center text-lg font-medium hover:text-slate-50 hover:bg-[#0077b6] transition">
           Inversiones
         </a>
       </Link>

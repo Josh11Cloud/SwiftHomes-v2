@@ -28,6 +28,17 @@ export default function AdminDashboard() {
   const [consultaFilter, setConsultaFilter] = useState("todos");
   const [selectedLead, setSelectedLead] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const totalLeads = leads.length;
+  const Nuevos = leads.filter((lead) => lead.estado === "Nuevo").length;
+  const Completados = leads.filter((lead) => lead.estado === "Completado").length;
+  const statusStyles = {
+    Nuevo: "bg-yellow-300 text-yellow-600",
+    Completado: "bg-green-100 text-green-600",
+  };
+  const buttonStyles = {
+    Nuevo: "bg-green-100 text-green-600",
+    Completado: "bg-yellow-300 text-yellow-600",
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -94,6 +105,11 @@ export default function AdminDashboard() {
     }
   };
 
+  const cambiarEstado = async (leadId, nuevoEstado) => {
+    const ref = doc(db, "contactos", leadId);
+    await updateDoc(ref, { estado: nuevoEstado });
+    toast.success("Estado actualizado");
+  };
   return (
     <>
       {/* HERO */}
@@ -189,6 +205,7 @@ export default function AdminDashboard() {
                 <th className="p-4 text-left w-1/4">Correo</th>
                 <th className="p-4 text-left w-1/2">Mensaje</th>
                 <th className="p-4 text-left w-1/4">Fecha</th>
+                <th className="p-4 text-left w-1/4">Estado</th>
                 <th className="p-4 text-center w-1/4">Acciones</th>
               </tr>
             </thead>
@@ -229,8 +246,31 @@ export default function AdminDashboard() {
                     <td className="p-4 text-left truncate max-w-xs border-r border-gray-300">
                       {lead.message ? lead.message : "No especificado"}
                     </td>
-                    <td className="p-4 text-left">
+                    <td className="">
                       {lead.fecha ? lead.fecha : "No especificado"}
+                    </td>
+                    <td className="p-4 text-left">
+                      <span
+                        className={`ml-2 px-2 py-1 text-md text-center rounded-full ${
+                          statusStyles[lead.estado]
+                        }`}
+                      >
+                        {lead.estado}
+                      </span>
+                      <motion.button
+                        onClick={() =>
+                          cambiarEstado(
+                            lead.id,
+                            lead.estado === "Nuevo" ? "Completado" : "Nuevo"
+                          )
+                        }
+                        className={`text-sm hover:scale-105 px-3 py-1 rounded-md ml-2 ${
+                          buttonStyles[lead.estado]
+                        }`}
+                      >
+                        Marcar como
+                        {lead.estado === "Nuevo" ? " Completado" : " Nuevo"}
+                      </motion.button>
                     </td>
                     <td className="p-4 text-left">
                       <motion.button
@@ -324,6 +364,23 @@ export default function AdminDashboard() {
               )}
             </tbody>
           </table>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+            <h2 className="text-2xl mt-6 text-[#0077b6] font-semibold">Total de Leads</h2>
+            <div className="bg-slate-50 rounded-xl shadow-md p-6 border-l-4 border-[#0077b6]">
+              <p className="text-sm text-slate-500">Todos</p>
+              <p className="text-2xl font-bold text-slate-700">{totalLeads}</p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-600">
+              <p className="text-sm text-slate-500">Nuevos</p>
+              <p className="text-2xl font-bold text-red-600">{Nuevos}</p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-600">
+              <p className="text-sm text-slate-500">Completados</p>
+              <p className="text-2xl font-bold text-green-600">{Completados}</p>
+            </div>
+          </div>
         </div>
       </section>
     </>
