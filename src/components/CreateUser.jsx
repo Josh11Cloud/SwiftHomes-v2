@@ -1,68 +1,84 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config"; 
 import { useState } from "react";
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import toast from "react-hot-toast";
-import { doc, setDoc, } from "firebase/firestore";
-import db from "../firebase/config";
+import Link from 'next/link';
+import { useAuth } from "../context/AuthContext"; 
 
 export default function CreateUser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); 
   const [error, setError] = useState("");
-  const navigate = useRouter();
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const { register } = useAuth();
 
   const handleRegister = async (e) => {
-  e.preventDefault();
-  setError("");
-
+    e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      const userRef = doc(db, "users", user.uid);
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        role: "user",
-        imagen: "",
-      });
-      toast.success("¡Cuenta creada correctamente!");
-      navigate("/login");
+      const success = await register(name, email, password);
+      if (success) {
+        router.push("/");
+      }
     } catch (error) {
-      toast.error("Error al crear la cuenta: " + error.message);
+      if (error.response) {
+        setError(error.response.data.error || "Error en el servidor");
+        toast.error("Hubo un error en el servidor, porfavor intenta d enuevo más tarde,");
+      } else {
+        setError("Error de conexión. Por favor, inténtalo de nuevo.");
+        toast.error("Error de conexión")
+      }
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  return(
-  <div className="max-w-md mx-auto mt-20 p-6 bg-slate-50 rounded 2xl shadow-xl">
+  return (
+    <div className="max-w-md mx-auto mt-20 p-6 bg-slate-50 rounded 2xl shadow-xl">
       <h2 className="text-2xl font-bold mb-6 text-center">Crear Cuenta</h2>
       <form onSubmit={handleRegister} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            placeholder="Contraseña"
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
-            required
-          />
-          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          <button type="submit" className="w-full bg-[#0077b6] text-slate-50 py-2 rounded-xl hover:bg-[#005f87]">
-            Registrarse
-          </button>
-        </form>
-           <p className="text-sm mt-4 text-center">
-            ¿Ya tienes una cuenta?{" "}
-            <Link href="/login" className="text-black text-center hover:text-[#0077b6] underline">Iniciar Sesión</Link>
-            </p>
+        <input
+          type="text"
+          placeholder="Nombre"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+          required
+        />
+        <input
+          type="email"
+          placeholder="Correo electrónico"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+          required
+        />
+        <input
+          type="password"
+          value={password}
+          placeholder="Contraseña"
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+          required
+        />
+        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+        <button 
+          type="submit" 
+          className={`w-full py-2 rounded-xl ${loading ? "bg-gray-400" : "bg-[#0077b6] hover:bg-[#005f87]"} text-slate-50`}
+          disabled={loading}
+        >
+          {loading ? "Cargando..." : "Registrarse"}
+        </button>
+      </form>
+      <p className="text-sm mt-4 text-center">
+        ¿Ya tienes una cuenta?
+        <Link href="/login" className="text-black text-center hover:text-[#0077b6] underline">
+          Iniciar Sesión
+        </Link>
+      </p>
     </div>
   );
 }

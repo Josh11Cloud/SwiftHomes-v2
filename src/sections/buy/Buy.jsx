@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Spinner from '../../components/Spinner.jsx';
-import db from "../../firebase/config.js";
-import { getDocs, collection } from 'firebase/firestore';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
 
@@ -14,22 +12,26 @@ function Buy() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "propiedades"));
-        const fetchedProperties = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            ubicacion: data.ubicacion ?? '',
-            tipo: data.tipo ?? '',
-            precio: Number(data.precio) || 0,
-            categoria: data.categoria ?? '',
-          };
-        });
-        setFullProps(fetchedProperties);
+        const res = await fetch("http://127.0.0.1:5500/api/propiedades");
+        if (!res.ok) throw new Error("No se pudo obtener propiedades");
+
+        const fetchedProperties = await res.json();
+
+        const parsedProperties = fetchedProperties.map((p) => ({
+          id: p.id || crypto.randomUUID(),
+          nombre: p.nombre,
+          precio: Number(p.precio) || 0,
+          ubicacion: p.ubicacion ?? '',
+          tipo: p.tipo ?? '',
+          categoria: p.categoria ?? '',
+          imagen: p.imagen,
+          descripcion: p.descripcion,
+        }));
+
+        setFullProps(parsedProperties);
         setLoading(false);
       } catch (error) {
-        toast.error("Error al obtener propiedades:" + error);
+        toast.error("Error al obtener propiedades: " + error.message);
         setLoading(false);
       }
     };
@@ -60,7 +62,7 @@ function Buy() {
           </motion.p>
         </div>
         <motion.img
-         src="/assets/images/casa.png" 
+          src="/assets/images/casa.png"
           alt="House"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

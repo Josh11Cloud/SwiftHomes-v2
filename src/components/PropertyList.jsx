@@ -16,52 +16,39 @@ import PropertyModal from "./PropertyModal";
 import ROIWithTooltip from "../sections/invest/ROITootlip";
 import { useFavorites } from "../context/FavoritesContext";
 
-export default function PropertyList({ property, showROI, isInvestSection }) {
+export default function PropertyList({ property, showROI }) {
+  console.log("PropertyList:", property);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { favorites, toggleFavorite } = useFavorites();
-  const isFavorite = favorites.includes(String(property.id));
+  const isFavorite = property && favorites && favorites.includes(String(property.id));
 
   const abrirModal = () => {
     setSelectedProperty(property);
     setModalAbierto(true);
   };
 
-  if (!property || !property.imagen) {
-    return <p>No hay imagen disponible</p>;
-  }
+  const rentabilidadAnual = property.precio > 0 ? (property.ingresos_mensuales * 12) / property.precio * 100 : 0;
 
-  const fetchROI = async (prop) => {
-    const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbzedbE6kMBw5QEp94h-jfxyymxtEZrv0dh9OPqnRosiF9HDOKkx1VGXGT-FaVyw3-sI/exec"
-    );
-    const rois = await res.json();
-    const roiData = rois
-      .slice(1)
-      .find((r) => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
-    const roiIndex = rois[0].indexOf("ROI");
-    return roiData ? roiData[roiIndex] : null;
+  const getRentabilidadColor = (rentabilidad) => {
+    if (rentabilidad > 7) return 'text-green-600';
+    if (rentabilidad > 4) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
-  const [roi, setRoi] = useState(null);
-
-  useEffect(() => {
-    const loadROI = async () => {
-      const roiValue = await fetchROI(property);
-      setRoi(roiValue);
-    };
-    loadROI();
-  }, [property]);
+  if (!property || !property.imagen) {
+    return <p className="text-center text-gray-600 text-md">No hay imagen disponible</p>;
+  }
 
   const tags = [
     {
       id: "oportunidadInversion",
       label: "Oportunidad de Inversión",
       condition:
-        roi !== null &&
-        roi !== undefined &&
-        !isNaN(parseFloat(roi)) &&
-        parseFloat(roi) >= 7,
+        property.roi !== null &&
+        property.roi !== undefined &&
+        !isNaN(parseFloat(property.roi)) &&
+        parseFloat(property.roi) >= 7,
       bg: "bg-green-200",
       text: "text-green-600",
       icon: <ChartNoAxesCombined size={18} />,
@@ -159,8 +146,8 @@ export default function PropertyList({ property, showROI, isInvestSection }) {
             {property.categoria === "renta"
               ? `$${Number(property.renta).toLocaleString()}`
               : property.precio
-              ? `$${Number(property.precio).toLocaleString("es-MX")}`
-              : "Precio no disponible"}
+                ? `$${Number(property.precio).toLocaleString("es-MX")}`
+                : "Precio no disponible"}
           </p>
           {window.location.pathname === "/inversiones" && (
             <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
@@ -170,18 +157,25 @@ export default function PropertyList({ property, showROI, isInvestSection }) {
                 </p>
               )}
               {showROI && (
-                <p className="flex items-center">
+                <p className="flex items-center gap-1">
                   <ChartNoAxesColumnIncreasing
                     size={20}
                     className="mr-2 text-[#0077b6]"
                   />
-                  Rentabilidad Anual: {property.rentabilidadAnual}
+                  Rentabilidad Anual: 
+                  <span className={`${getRentabilidadColor(rentabilidadAnual)} font-bold`}>
+                    {property.precio > 0 ? `${Number(rentabilidadAnual).toFixed(2)}%` : 'No disponible'}
+                  </span>
                 </p>
               )}
-              {isInvestSection && property.plazoDelRetorno && (
+              {property.paybackyears && (
                 <span className="text-sm text-gray-700 flex items-center">
                   <Clock size={20} className="mr-1 text-[#0077b6]" />
-                  {property.plazoDelRetorno} para recuperar inversión.
+                  {(() => {
+                    const años = Math.floor(property.paybackyears);
+                    const meses = Math.round((property.paybackyears - años) * 12);
+                    return `${años} ${años === 1 ? 'año' : 'años'} y ${meses} ${meses === 1 ? 'mes' : 'meses'} para recuperar inversión.`;
+                  })()}
                 </span>
               )}
             </div>

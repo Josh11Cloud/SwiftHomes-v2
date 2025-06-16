@@ -1,32 +1,41 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
-import { addActivity } from "./AddActivity";
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+  const { login, loginLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const validateForm = () => {
+    if (!email || !password) {
+      setError("Por favor, complete todos los campos");
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Correo electrónico inválido");
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
+    if (!validateForm()) return;
+
+    const success = await login(email, password);
+    if (success) {
       toast.success("¡Bienvenido de nuevo!");
-      addActivity(user.uid, "login", "El usuario inició sesión");
       router.push("/", undefined, { shallow: true });
-    } catch (error) {
-      toast.error("Error al iniciar sesión: " + error.message);
+    } else {
+      setError("Credenciales incorrectas");
+      toast.error("Error al iniciar sesión");
     }
   };
 
@@ -51,9 +60,10 @@ export default function Login() {
         {error && <p className="text-red-600">{error}</p>}
         <button
           type="submit"
-          className="w-full bg-[#0077b6] text-slate-50 py-2 rounded-xl hover:bg-[#005f87] transition"
+          className={`w-full bg-[#0077b6] text-slate-50 py-2 rounded-xl hover:bg-[#005f87] transition ${loginLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={loginLoading}
         >
-          Ingresar
+          {loginLoading ? "Cargando..." : "Ingresar"}
         </button>
       </form>
       <p className="text-sm mt-4 text-center">

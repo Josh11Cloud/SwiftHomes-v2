@@ -1,17 +1,30 @@
+import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+import Spinner from './Spinner';
 
-const PrivateRoute = () => {
+export default function PrivateRoute({ children }) {
+  const { user, loading, isAuthenticated, error } = useAuth();
   const router = useRouter();
-  const auth = useAuth();
-  const user = auth?.user;
-  
-  useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    }
-  }, [user, router]);
-};
 
-export default PrivateRoute;
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      toast.error("Debes iniciar sesión para acceder a esta página");
+      router.replace("/login");
+    }
+    if (error) {
+      toast.error(error);
+    }
+  }, [loading, isAuthenticated, error, router]);
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return children;
+}

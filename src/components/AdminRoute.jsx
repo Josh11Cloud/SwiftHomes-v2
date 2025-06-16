@@ -1,19 +1,24 @@
-import { useRouter } from 'next/router';
 import { useAuth } from "../context/AuthContext";
-import Spinner from './Spinner'
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
 
-function AdminRoute({ children }) {
-  const { user, loading } = useAuth();
+export default function AdminRoute({ children }) {
+  const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  if (loading) return <Spinner />;
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated || user?.role !== "admin") {
+        router.replace("/");
+        toast.error("Acceso Denegado. No tienes permisos para acceder a esta ruta");
+      }
+    }
+  }, [loading, isAuthenticated, user, router]);
 
-  if (!user || user.role !== "admin") {
-    router.replace("/");
+  if (loading || !isAuthenticated || user?.role !== "admin") {
     return null;
   }
 
   return children;
 }
-
-export default AdminRoute;

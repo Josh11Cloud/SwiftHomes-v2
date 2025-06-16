@@ -17,31 +17,35 @@ import {
 import { useState, useEffect } from "react";
 import PropertyModal from "./PropertyModal.jsx";
 import { motion } from "framer-motion";
+import { fetchProperties } from './FetchProperties.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useRouter } from 'next/router';
 
 const PropertiesPerPage = ({
-  properties,
   showROI = false,
-  propertiesPerPage,
+  propertiesPerPage = 6,
   category = "renta",
+  initialProperties,
 }) => {
-  const filterByCategory = (prop) =>
-    prop.categoria?.toLowerCase().trim() === category.toLowerCase().trim();
+  console.log("initialProperties:", initialProperties);
+  const { token } = useAuth();
+
+  // Estado de propiedades y paginación
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [properties, setProperties] = useState(initialProperties);
+
+  // Filtros
   const [minPrice, setMinPrice] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [maxPrice, setMaxPrice] = useState("");
   const [propertyType, setPropertyType] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
-  const [selectedProperty, setSelectedProperty] = useState(null);
   const [roiOrder, setRoiOrder] = useState("");
   const [minAñosRetorno, setMinAñosRetorno] = useState("");
+  const [advancedFiltersModalOpen, setAdvancedFiltersModalOpen] = useState(false);
   const [minRentabilidadAnual, setMinRentabilidadAnual] = useState("");
-  const fullProps = properties;
-  const [ubicacionFiltro, setUbicacionFiltro] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [advancedFiltersModalOpen, setAdvancedFiltersModalOpen] =
-    useState(false);
-
+  const router = useRouter();
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState({
     superficieMin: "",
     superficieMax: "",
@@ -53,166 +57,238 @@ const PropertiesPerPage = ({
     financiamiento: false,
   });
 
-  const filteredProperties = fullProps
-    .filter(filterByCategory)
-    .filter((prop) => {
-      const cumpleRentabilidad =
-        minRentabilidadAnual === "" ||
-        (minRentabilidadAnual !== "" &&
-          parseFloat(String(prop.rentabilidadAnual)) >=
-            parseFloat(minRentabilidadAnual) / 100);
-      const searchTermLower = searchTerm.toLowerCase().trim();
-      const minPriceValue = minPrice === "" ? 0 : Number(minPrice);
-      const maxPriceValue = maxPrice === "" ? Infinity : Number(maxPrice);
-      const matchesPrice =
-        Number(prop.precio) >= minPriceValue &&
-        Number(prop.precio) <= maxPriceValue;
-      const cumpleAños =
-        minAñosRetorno === "" || prop.añosDeRetorno >= Number(minAñosRetorno);
-      const matchesSearchTerm =
-        prop.ubicacion?.toLowerCase().includes(searchTermLower) ||
-        prop.tipo?.toLowerCase().includes(searchTermLower);
-      const matchesPropertyType =
-        propertyType === "" ||
-        prop.tipo?.toLowerCase().trim() === propertyType.toLowerCase().trim();
-      const matchesUbicacion =
-        ubicacionFiltro === "" ||
-        prop.ubicacion?.toLowerCase().includes(ubicacionFiltro.toLowerCase());
-      const superficieValida =
-        (!advancedFilters.superficieMin ||
-          prop.area >= Number(advancedFilters.superficieMin)) &&
-        (!advancedFilters.superficieMax ||
-          prop.area <= Number(advancedFilters.superficieMax));
-          
-      const antiguedadValida = (() => {
-        const anios = prop.antiguedad;
-        if (!advancedFilters.antiguedad) return true;
-        if (advancedFilters.antiguedad === "0-5") return anios <= 5;
-        if (advancedFilters.antiguedad === "5-10")
-          return anios > 5 && anios <= 10;
-        if (advancedFilters.antiguedad === "10+") return anios > 10;
-        return true;
-      })();
-
-      const serviciosValidos = Object.entries(advancedFilters.servicios).every(
-        ([servicio, activo]) => !activo || prop.servicios.includes(servicio)
-      );
-
-      const financiamientoValido =
-        !advancedFilters.financiamiento || prop.financiamiento === true;
-      return (
-        superficieValida &&
-        antiguedadValida &&
-        serviciosValidos &&
-        financiamientoValido &&
-        matchesPrice &&
-        (searchTerm === "" || matchesSearchTerm) &&
-        matchesPropertyType &&
-        cumpleAños &&
-        cumpleRentabilidad &&
-        matchesUbicacion
-      );
-    })
-    .sort((a, b) => {
-      if (sortOrder === "desc") {
-        return Number(b.precio) - Number(a.precio);
-      } else if (sortOrder === "asc") {
-        return Number(a.precio) - Number(b.precio);
-      } else {
-        return 0;
-      }
-    });
+  const [filters, setFilters] = useState({
+    minPrice: "",
+    maxPrice: "",
+    propertyType: "",
+    searchTerm: "",
+    sortOrder: "",
+    roiOrder: "",
+    minAñosRetorno: "",
+    minRentabilidadAnual: "",
+    ubicacion: "",
+    advanced: {
+      superficieMin: "",
+      superficieMax: "",
+      antiguedad: "",
+      servicios: {
+        piscina: false,
+        seguridad: false,
+      },
+      financiamiento: false,
+    },
+  });
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [currentPage]);
+    const query = router.query;
 
-  const allSuggestions = [
-    ...new Set(
-      properties.flatMap((prop) => [
-        prop.ubicacion,
-        prop.tipo,
-        `$${Number(prop.precio).toLocaleString()}`,
-      ])
-    ),
-  ];
+    setFilters((prev) => ({
+      ...prev,
+      propertyType: query.propertyType || "",
+      minPrice: query.minPrice || "",
+      maxPrice: query.maxPrice || "",
+      searchTerm: query.texto || "",
+      sortOrder: query.sortOrder || "",
+      roiOrder: query.roiOrder || "",
+      minAñosRetorno: query.minAñosRetorno || "",
+      minRentabilidadAnual: query.minRentabilidadAnual || "",
+      ubicacion: query.ubicacion || "",
+      advanced: {
+        superficieMin: query.superficieMin || "",
+        superficieMax: query.superficieMax || "",
+        antiguedad: query.antiguedad || "",
+        servicios: {
+          piscina: query.piscina === "true",
+          seguridad: query.seguridad === "true",
+        },
+        financiamiento: query.financiamiento === "true",
+      },
+    }));
 
-  const filteredSuggestions = searchTerm
-    ? allSuggestions.filter((sug) =>
-        sug.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+    setPage(parseInt(query.page || "1"));
 
-  const handleSuggestionClick = (suggestion) => {
-    setSearchTerm(suggestion);
-    setShowSuggestions(false);
-    if (suggestion.includes("$")) {
-      const precio = Number(suggestion.replace(/\D/g, ""));
-      if (precio < Number(minPrice)) {
-        setMinPrice(precio);
-      } else if (precio > Number(maxPrice)) {
-        setMaxPrice(precio);
+    setPropertyType(query.propertyType || "");
+    setMinPrice(query.minPrice || "");
+    setMaxPrice(query.maxPrice || "");
+    setSortOrder(query.sortOrder || "");
+    setRoiOrder(query.roiOrder || "");
+    setMinAñosRetorno(query.minAñosRetorno || "");
+    setMinRentabilidadAnual(query.minRentabilidadAnual || "");
+    setAdvancedFilters({
+      superficieMin: query.superficieMin || "",
+      superficieMax: query.superficieMax || "",
+      antiguedad: query.antiguedad || "",
+      servicios: {
+        piscina: query.piscina === "true",
+        seguridad: query.seguridad === "true",
+      },
+      financiamiento: query.financiamiento === "true",
+    });
+  }, [router.query]);
+
+  const appendIfExists = (params, key, value) => {
+    if (value !== "" && value !== null && value !== undefined) {
+      if (typeof value === "boolean") {
+        params.append(key, value.toString());
       } else {
-        setMinPrice(precio);
-        setMaxPrice(precio);
+        params.append(key, value);
       }
-    } else if (["Casa", "Departamento"].includes(suggestion)) {
-      setPropertyType(suggestion);
-    } else {
-      setUbicacionFiltro(suggestion);
     }
-    setCurrentPage(1);
+  };
+
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    appendIfExists(params, "page", page);
+    appendIfExists(params, "limit", propertiesPerPage);
+    appendIfExists(params, "category", category);
+    appendIfExists(params, "propertyType", filters.propertyType);
+    appendIfExists(params, "minPrice", filters.minPrice);
+    appendIfExists(params, "maxPrice", filters.maxPrice);
+    appendIfExists(params, "texto", filters.searchTerm);
+    appendIfExists(params, "ubicacion", filters.ubicacion);
+    appendIfExists(params, "sortOrder", filters.sortOrder);
+    appendIfExists(params, "antiguedad", filters.advanced.antiguedad);
+    appendIfExists(params, "superficieMin", filters.advanced.superficieMin);
+    appendIfExists(params, "superficieMax", filters.advanced.superficieMax);
+    if (filters.advanced.servicios.piscina) params.append("piscina", "true");
+    if (filters.advanced.servicios.seguridad) params.append("seguridad", "true");
+    if (filters.advanced.financiamiento) params.append("financiamiento", "true");
+    return params.toString();
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".relative")) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
+    setProperties(initialProperties);
+  }, [initialProperties]);
 
-  const filteredPropertiesWithAñosDeRetorno = showROI
-    ? filteredProperties.map((prop) => {
-        const rentabilidadAnual = prop.rentabilidadAnual;
-        return {
-          ...prop,
-          rentabilidadAnual: rentabilidadAnual
-            ? `${(parseFloat(rentabilidadAnual) * 100).toFixed(2)}%`
-            : null,
-        };
-      })
-    : filteredProperties;
+  const totalPages = Math.ceil(total / propertiesPerPage);
 
-  const finalFilteredProperties = filteredPropertiesWithAñosDeRetorno;
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
-  if (finalFilteredProperties && roiOrder) {
-    finalFilteredProperties.sort((a, b) => {
-      if (roiOrder === "roiAsc") return parseFloat(a.roi) - parseFloat(b.roi);
-      if (roiOrder === "roiDesc") return parseFloat(b.roi) - parseFloat(a.roi);
-      return 0;
+  const updateFilter = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+    router.push({
+      pathname: router.pathname,
+      query: { ...router.query, [key]: value, page: 1 },
     });
+  };
+
+  const handleSearchChange = (e) => {
+    setFilters((prev) => ({ ...prev, searchTerm: e.target.value }));
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      router.push({
+        pathname: router.pathname,
+        query: { ...router.query, texto: filters.searchTerm, page: 1 },
+      });
+    }
   }
 
-  const indexOfLastProperty = currentPage * propertiesPerPage;
-  const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
-  const currentProperties = finalFilteredProperties.slice(
-    indexOfFirstProperty,
-    indexOfLastProperty
-  );
-
-  const handlePageChange = (pageNumber) => {
-    if (
-      pageNumber >= 1 &&
-      pageNumber <= Math.ceil(filteredProperties.length / propertiesPerPage)
-    ) {
-      setCurrentPage(pageNumber);
+  const handleMinPriceKeyDown = (e) => {
+    if (e.key === "Enter") {
+      router.push({
+        pathname: router.pathname,
+        query: { ...router.query, minPrice: filters.minPrice, page: 1 },
+      });
     }
   };
+
+  const handleMaxPriceKeyDown = (e) => {
+    if (e.key === "Enter") {
+      router.push({
+        pathname: router.pathname,
+        query: { ...router.query, maxPrice: filters.maxPrice, page: 1 },
+      });
+    }
+  };
+
+  const applyAdvancedFilters = () => {
+    setPage(1);
+    router.push({
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        superficieMin: advancedFilters.superficieMin || undefined,
+        superficieMax: advancedFilters.superficieMax || undefined,
+        antiguedad: advancedFilters.antiguedad || undefined,
+        piscina: advancedFilters.servicios.piscina ? "true" : undefined,
+        seguridad: advancedFilters.servicios.seguridad ? "true" : undefined,
+        financiamiento: advancedFilters.financiamiento ? "true" : undefined,
+        page: 1,
+      },
+    });
+  };
+
+  const updateAdvancedFilter = (key, value) => {
+    setAdvancedFilters((prev) => ({ ...prev, [key]: value }));
+    console.log(advancedFilters);
+    applyAdvancedFilters();
+  };
+
+  const updateService = (serviceKey, value) => {
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      servicios: { ...prev.servicios, [serviceKey]: value },
+    }));
+    setFilters((prev) => ({
+      ...prev,
+      advanced: {
+        ...prev.advanced,
+        servicios: { ...prev.advanced.servicios, [serviceKey]: value },
+      },
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      minPrice: "",
+      maxPrice: "",
+      propertyType: "",
+      searchTerm: "",
+      sortOrder: "",
+      roiOrder: "",
+      minAñosRetorno: "",
+      minRentabilidadAnual: "",
+      ubicacion: "",
+      advanced: {
+        superficieMin: "",
+        superficieMax: "",
+        antiguedad: "",
+        servicios: {
+          piscina: false,
+          seguridad: false,
+        },
+        financiamiento: false,
+      },
+    });
+    router.push({
+      pathname: router.pathname,
+      query: {},
+    });
+  };
+
+  const handleApplyFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      advanced: advancedFilters,
+    }));
+    applyAdvancedFilters();
+    setAdvancedFiltersModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (initialProperties.length > 0) {
+      setProperties(initialProperties);
+      setTotal(initialProperties.length);
+    }
+  }, [initialProperties]);
 
   return (
     <>
@@ -226,33 +302,15 @@ const PropertiesPerPage = ({
               <input
                 type="text"
                 placeholder="Buscar por ubicación, tipo o precio..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                  setShowSuggestions(true);
-                }}
+                value={filters.searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchKeyDown}
                 className="w-full px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
               />
               <Search
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#0077B6]"
                 size={18}
               />
-
-              {/* Sugerencias */}
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <ul className="absolute z-10 w-full mt-1 bg-slate-50 border border-gray-300 shadow-lg max-h-60 overflow-y-auto text-sm rounded-lg">
-                  {filteredSuggestions.map((suggestion, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 hover:bg-[#0077b6] hover:text-slate-50 border border-gray-600 cursor-pointer"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      {suggestion}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
             {/* Sección de filtros */}
             <section className="flex flex-row flex-wrap gap-3 items-center justify-center mt-2">
@@ -261,14 +319,13 @@ const PropertiesPerPage = ({
                 <select
                   className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   value={propertyType}
-                  onChange={(e) => {
-                    setPropertyType(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => updateFilter("propertyType", e.target.value)}
                 >
                   <option value="">Cualquier Tipo de Propiedad</option>
                   <option value="Casa">Casa</option>
                   <option value="Departamento">Departamento</option>
+                  <option value="Oficina">Oficina</option>
+                  <option value="Terreno">Terreno</option>
                 </select>
                 <Home
                   className="absolute right-5 top-1/2 transform -translate-y-1/2 text-[#0077B6]"
@@ -280,10 +337,7 @@ const PropertiesPerPage = ({
                 <select
                   className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   value={sortOrder}
-                  onChange={(e) => {
-                    setSortOrder(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => updateFilter("sortOrder", e.target.value)}
                 >
                   <option value="">Ordenar por Precio</option>
                   <option value="desc">Mayor a Menor</option>
@@ -302,10 +356,8 @@ const PropertiesPerPage = ({
                     type="number"
                     value={minPrice}
                     placeholder="Precio Mínimo"
-                    onChange={(e) => {
-                      setMinPrice(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => updateFilter("minPrice", e.target.value)}
+                    onKeyDown={handleMinPriceKeyDown}
                     className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   />
                   <DollarSign
@@ -318,10 +370,8 @@ const PropertiesPerPage = ({
                     type="number"
                     value={maxPrice}
                     placeholder="Precio Máximo"
-                    onChange={(e) => {
-                      setMaxPrice(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => updateFilter("maxPrice", e.target.value)}
+                    onKeyDown={handleMaxPriceKeyDown}
                     className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   />
                   <DollarSign
@@ -339,10 +389,7 @@ const PropertiesPerPage = ({
                       <select
                         className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                         value={roiOrder}
-                        onChange={(e) => {
-                          setRoiOrder(e.target.value);
-                          setCurrentPage(1);
-                        }}
+                        onChange={(e) => updateFilter("roiOrder", e.target.value)}
                       >
                         <option value="">Ordenar por ROI</option>
                         <option value="roiDesc">ROI: Mayor a Menor</option>
@@ -358,10 +405,7 @@ const PropertiesPerPage = ({
                         type="number"
                         value={minAñosRetorno}
                         placeholder="Min. Años de Retorno"
-                        onChange={(e) => {
-                          setMinAñosRetorno(e.target.value);
-                          setCurrentPage(1);
-                        }}
+                        onChange={(e) => updateFilter("minAñosRetorno", e.target.value)}
                         className="w-full min-w-[150px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                       />
                       <CalendarClock
@@ -373,12 +417,8 @@ const PropertiesPerPage = ({
 
                   <div className="relative w-full sm:min-w-44">
                     <select
-                      type="number"
                       value={minRentabilidadAnual}
-                      onChange={(e) => {
-                        setMinRentabilidadAnual(e.target.value);
-                        setCurrentPage(1);
-                      }}
+                      onChange={(e) => updateFilter("minRentabilidadAnual", e.target.value)}
                       className="w-full mt-2 min-w-[200px] px-4 py-2 text-sm rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                     >
                       <option value="">Mínimo De Rentabilidad Anual (%)</option>
@@ -439,12 +479,7 @@ const PropertiesPerPage = ({
                             placeholder="Superficie mínima"
                             className="input input-bordered w-28 focus:outline-none focus:ring-1 focus:ring-[#0077B6] rounded-md border border-slate-300 pl-10"
                             value={advancedFilters.superficieMin}
-                            onChange={(e) =>
-                              setAdvancedFilters({
-                                ...advancedFilters,
-                                superficieMin: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setAdvancedFilters((prev) => ({ ...prev, superficieMin: e.target.value }))}
                           />
                           <Ruler className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#0077b6]" />
                         </div>
@@ -454,12 +489,7 @@ const PropertiesPerPage = ({
                             placeholder="Superficie máxima"
                             className="input input-bordered w-28 focus:outline-none focus:ring-1 focus:ring-[#0077B6] rounded-md border border-slate-300 pl-10"
                             value={advancedFilters.superficieMax}
-                            onChange={(e) =>
-                              setAdvancedFilters({
-                                ...advancedFilters,
-                                superficieMax: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setAdvancedFilters((prev) => ({ ...prev, superficieMax: e.target.value }))}
                           />
                           <Ruler className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#0077b6]" />
                         </div>
@@ -469,12 +499,7 @@ const PropertiesPerPage = ({
                           className="w-full text-md rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                           value={advancedFilters.antiguedad}
                           title="Antiguedad de la Propiedad"
-                          onChange={(e) =>
-                            setAdvancedFilters({
-                              ...advancedFilters,
-                              antiguedad: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setAdvancedFilters((prev) => ({ ...prev, antiguedad: e.target.value }))}
                         >
                           <option value="">Cualquiera</option>
                           <option value="0-5">0-5 años</option>
@@ -496,15 +521,7 @@ const PropertiesPerPage = ({
                               type="checkbox"
                               className="checkbox hover:scale-110"
                               checked={advancedFilters.servicios[servicio]}
-                              onChange={() =>
-                                setAdvancedFilters((prev) => ({
-                                  ...prev,
-                                  servicios: {
-                                    ...prev.servicios,
-                                    [servicio]: !prev.servicios[servicio],
-                                  },
-                                }))
-                              }
+                              onChange={() => updateService(servicio, !advancedFilters.servicios[servicio])}
                             />
                             {servicio === "piscina" && (
                               <WavesLadder
@@ -528,12 +545,12 @@ const PropertiesPerPage = ({
                             type="checkbox"
                             className="checkbox hover:scale-110"
                             checked={advancedFilters.financiamiento}
-                            onChange={() =>
+                            onChange={(e) => {
                               setAdvancedFilters((prev) => ({
                                 ...prev,
-                                financiamiento: !prev.financiamiento,
-                              }))
-                            }
+                                financiamiento: e.target.checked,
+                              }));
+                            }}
                           />
                           <Landmark size={18} className="text-[#0077b6]" />
                           <span className="text-md">Acepta financiamiento</span>
@@ -543,7 +560,7 @@ const PropertiesPerPage = ({
                     <div className="modal-action">
                       <button
                         className="bg-[#0077b6] mx-auto block rounded-md text-slate-50 px-2 py-1 mt-5"
-                        onClick={() => setAdvancedFiltersModalOpen(false)}
+                        onClick={handleApplyFilters}
                       >
                         Aplicar filtros
                       </button>
@@ -555,86 +572,63 @@ const PropertiesPerPage = ({
             {/* Botón de limpiar filtros */}
             <button
               className="bg-[#0077B6] text-[#F8F9FA] px-4 py-2 text-sm rounded-lg hover:bg-[#005f87] mt-5 transition mx-auto block"
-              onClick={() => {
-                setPropertyType("");
-                setMinPrice("");
-                setMaxPrice("");
-                setSearchTerm("");
-                setSortOrder("");
-                setRoiOrder("");
-                setMinAñosRetorno("");
-                setMinRentabilidadAnual("");
-                setUbicacionFiltro("");
-                setAdvancedFilters({
-                  superficieMin: "",
-                  superficieMax: "",
-                  antiguedad: "",
-                  servicios: {
-                    piscina: false,
-                    seguridad: false,
-                  },
-                  financiamiento: false,
-                });
-              }}
+              onClick={resetFilters}
             >
               Limpiar filtros
             </button>
           </div>
         </div>
-      </div>
+      </div >
       {/* CARDS */}
-      {currentProperties.length === 0 ? (
-        <p className="text-gray-600 text-center mb-10">
-          No hay propiedades que coincidan con los filtros.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-          {currentProperties.map((prop) => (
-            <PropertyList
-              key={prop.id}
-              property={prop}
-              setSelectedProperty={setSelectedProperty}
-              showROI={showROI}
-              isInvestSection={true}
-            />
-          ))}
-        </div>
-      )}
-
+      {
+        properties.length === 0 && total > 0 ? (
+          <p className="text-gray-600 text-center mb-10">
+            No hay propiedades que coincidan con los filtros.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+            {properties.map((prop) => (
+              <PropertyList
+                key={prop.id}
+                property={prop}
+                showROI={showROI}
+              />
+            ))}
+          </div>
+        )
+      }
       {/* PropertyModal*/}
       <PropertyModal
         isOpen={!!selectedProperty}
         onClose={() => setSelectedProperty(null)}
         property={selectedProperty}
       />
-
       {/* PAGINATION */}
-      <div className="flex justify-center items-center gap-2 mt-4">
+      <div className="flex justify-center items-center gap-2 mt-4 mb-4">
         <button
-          onClick={() => handlePageChange(currentPage - 1)}
+          onClick={() => handlePageChange(page - 1)}
           className="px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100"
         >
           Anterior
         </button>
 
         {[
-          ...Array(Math.ceil(filteredProperties.length / propertiesPerPage)),
+          ...Array(Math.ceil(total / propertiesPerPage)),
         ].map((_, i) => (
           <button
             key={i}
             onClick={() => handlePageChange(i + 1)}
-            className={`px-3 py-1 rounded ${
-              currentPage === i + 1
-                ? "bg-[#0077B6] text-white"
-                : "bg-slate-100 text-gray-700 hover:bg-slate-200"
-            }`}
+            className={`px-3 py-1 rounded ${page === i + 1
+              ? "bg-[#0077B6] text-white"
+              : "bg-slate-100 text-gray-700 hover:bg-slate-200"
+              }`}
           >
             {i + 1}
           </button>
         ))}
 
         <button
-          onClick={() => handlePageChange(currentPage + 1)}
+          onClick={() => handlePageChange(page + 1)}
           className="px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100"
         >
           Siguiente

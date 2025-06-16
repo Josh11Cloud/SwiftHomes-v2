@@ -24,11 +24,18 @@ export default function PropertyModal({
   abierto,
   cerrar,
   showROI,
-  isInvestSection,
 }) {
   const { favorites, toggleFavorite } = useFavorites();
 
   if (!propiedad) return null;
+
+  const rentabilidadAnual = propiedad.precio > 0 ? (propiedad.ingresos_mensuales * 12) / propiedad.precio * 100 : 0;
+
+  const getRentabilidadColor = (rentabilidad) => {
+    if (rentabilidad > 7) return 'text-green-600';
+    if (rentabilidad > 4) return 'text-yellow-600';
+    return 'text-red-600';
+  };
 
   const isFavorite = favorites.includes(String(propiedad.id));
 
@@ -172,34 +179,33 @@ export default function PropertyModal({
                   Oportunidad de Inversión
                 </span>
               )}
-              {isInvestSection && (
+              {window.location.pathname === "/inversiones" && (
                 <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
                   {showROI && (
                     <p className="font-semibold">
                       ROI: <ROIWithTooltip value={propiedad.roi} />
-                      {isInvestSection &&
-                        propiedad.roi &&
-                        parseFloat(propiedad.roi.replace("%", "").trim()) >
-                          10 && (
-                          <span className="ml-2 bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
-                            <ChartNoAxesColumnIncreasing /> Oportunidad
-                          </span>
-                        )}
                     </p>
                   )}
                   {showROI && (
-                    <p className="flex items-center">
+                    <p className="flex items-center gap-1">
                       <ChartNoAxesColumnIncreasing
                         size={20}
                         className="mr-2 text-[#0077b6]"
                       />
-                      Rentabilidad Anual: {propiedad.rentabilidadAnual}
+                      Rentabilidad Anual:
+                      <span className={`${getRentabilidadColor(rentabilidadAnual)} font-bold`}>
+                        {propiedad.precio > 0 ? `${Number(rentabilidadAnual).toFixed(2)}%` : 'No disponible'}
+                      </span>
                     </p>
                   )}
-                  {isInvestSection && propiedad.plazoDelRetorno && (
+                  {propiedad.paybackyears && (
                     <span className="text-sm text-gray-700 flex items-center">
                       <Clock size={20} className="mr-1 text-[#0077b6]" />
-                      {propiedad.plazoDelRetorno} para recuperar inversión.
+                      {(() => {
+                        const años = Math.floor(propiedad.paybackyears);
+                        const meses = Math.round((propiedad.paybackyears - años) * 12);
+                        return `${años} ${años === 1 ? 'año' : 'años'} y ${meses} ${meses === 1 ? 'mes' : 'meses'} para recuperar inversión.`;
+                      })()}
                     </span>
                   )}
                 </div>

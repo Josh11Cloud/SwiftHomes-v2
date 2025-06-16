@@ -1,63 +1,62 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Spinner from "../../components/Spinner.jsx";
-import db from "../../firebase/config.js";
-import { getDocs, collection } from "firebase/firestore";
-import PropertiesPerPage from "../../components/PropertiesPerPage.jsx";
 import { toast } from "sonner";
+import PropertiesPerPage from "../../components/PropertiesPerPage";
 
 function Invest() {
   const [loading, setLoading] = useState(true);
   const [fullProps, setFullProps] = useState([]);
-  const propertiesPerPage = 6;
+  const [filtradas, setFiltradas] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5500/api/propiedades");
+      const { properties } = await res.json();
+
+      const propiedadesConROI = await Promise.all(
+        properties.map(async (prop) => {
+          try {
+            const roiRes = await fetch(`http://127.0.0.1:5500/api/roi/${prop.id}`);
+            const roiData = await roiRes.json();
+
+            return {
+              ...prop,
+              roi: roiData.roi_anual,
+              ingresoAnual: roiData.ingreso_anual,
+              utilidadAnual: roiData.utilidad_anual,
+              plazoDelRetorno: roiData.payback_years,
+            };
+          } catch (e) {
+            console.error("Error al calcular ROI:", e);
+            return { ...prop, roi: null, plazoDelRetorno: null };
+          }
+        })
+      );
+
+      setFullProps(propiedadesConROI);
+    } catch (error) {
+      toast.error("Error cargando propiedades:" + error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let intervalId;
-    const fetchData = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "propiedades"));
-        const propiedades = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        const res = await fetch(
-          "https://script.google.com/macros/s/AKfycbzedbE6kMBw5QEp94h-jfxyymxtEZrv0dh9OPqnRosiF9HDOKkx1VGXGT-FaVyw3-sI/exec"
-        );
-        const rois = await res.json();
-
-        const propiedadesConROI = propiedades.map((prop) => {
-          const roiData = rois
-            .slice(1)
-            .find(
-              (r) => r[0] === (prop.sheetId ? prop.sheetId.toString() : null)
-            );
-          const roiIndex = rois[0].indexOf("ROI");
-          const rentabilidadAnualIndex = rois[0].indexOf("Rentabilidad Anual");
-          const plazoDelRetornoIndex = rois[0].indexOf("Plazo del Retorno");
-          return {
-            ...prop,
-            roi: roiData ? roiData[roiIndex] : null,
-            rentabilidadAnual: roiData ? roiData[rentabilidadAnualIndex] : null,
-            plazoDelRetorno: roiData ? roiData[plazoDelRetornoIndex] : null,
-          };
-        });
-
-        setFullProps(propiedadesConROI);
-        setLoading(false);
-      } catch (error) {
-        toast.error("Error cargando propiedades o ROI:" + error);
-        clearInterval(intervalId);
-      }
-    };
-
     fetchData();
-
-    intervalId = setInterval(fetchData, 30000);
-    return () => {
-      clearInterval(intervalId);
-    };
   }, []);
+
+  console.log(fullProps);
+
+  useEffect(() => {
+    const filtradasTemp = fullProps.filter((p) => p.isinvestment === true);
+    setFiltradas(filtradasTemp);
+    console.log("Filtradas:", filtradasTemp);
+  }, [fullProps]);
+
+  const descartadas = fullProps.filter(
+    (p) => p.isinvestment === true && (p.roi === null || p.ingresoAnual === undefined)
+  );
 
   if (loading) return <Spinner />;
 
@@ -72,7 +71,7 @@ function Invest() {
             transition={{ duration: 0.8 }}
             className="text-3xl md:text-5xl font-bold mb-4 text-slate-100"
           >
-            Invierte con <span className="text-gray-900">Inteligencia</span>
+            Invierte en tu <span className="text-gray-900">Futuro</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -93,28 +92,23 @@ function Invest() {
         />
       </section>
 
+      {descartadas.length > 0 && (
+        <div className="text-sm text-yellow-600 text-center mb-4">
+          ⚠️ {descartadas.length} propiedades marcadas para inversión fueron omitidas por falta de datos.
+        </div>
+      )}
+
       {/* PROPIEDADES */}
-      <PropertiesPerPage
-        properties={fullProps.filter((p) => p.isInvestment)}
-        propertiesPerPage={propertiesPerPage}
-        showROI={true}
-      />
+      {!loading && filtradas.length > 0 && (
+        <PropertiesPerPage
+          key={filtradas.length}
+          initialProperties={filtradas}
+          showROI={true}
+          propertiesPerPage={6}
+        />
+      )}
     </>
   );
 }
-
-export function calculateInvestmentMetrics(rois, prop) {
-    const roiData = rois
-      .slice(1)
-      .find((r) => r[0] === (prop.sheetId ? prop.sheetId.toString() : null));
-    const roiIndex = rois[0].indexOf("ROI");
-    const rentabilidadAnualIndex = rois[0].indexOf("Rentabilidad Anual");
-    const plazoDelRetornoIndex = rois[0].indexOf("Plazo del Retorno");
-    return {
-      roi: roiData ? roiData[roiIndex] : null,
-      rentabilidadAnual: roiData ? roiData[rentabilidadAnualIndex] : null,
-      plazoDelRetorno: roiData ? roiData[plazoDelRetornoIndex] : null,
-    };
-  }
 
 export default Invest;

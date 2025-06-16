@@ -23,3 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 
 swifthomes-v3-firebase-adminsdk-fbsvc-28a754e3da.json
+
+.env

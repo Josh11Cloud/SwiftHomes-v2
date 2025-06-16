@@ -75,7 +75,13 @@ export default function PropertyForm() {
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      const numericFields = [
+        "precio", "renta", "habitaciones", "banos", "area", "estacionamientos", "antiguedad"
+      ];
+      setForm((prev) => ({
+        ...prev,
+        [name]: numericFields.includes(name) ? Number(value) : value,
+      }));
     }
   };
 
@@ -235,27 +241,17 @@ export default function PropertyForm() {
       remodelar: form.remodelar,
     };
 
-    if (form.isInvestment) {
-      const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbzedbE6kMBw5QEp94h-jfxyymxtEZrv0dh9OPqnRosiF9HDOKkx1VGXGT-FaVyw3-sI/exec"
-      );
-      const rois = await res.json();
-      const { roi, rentabilidadAnual, plazoDelRetorno } =
-        calculateInvestmentMetrics(rois, form);
-      propiedad.roi = roi;
-      propiedad.paybackYears = plazoDelRetorno;
-    }
-
     try {
-      const response = await fetch("http://localhost:5000/api/propiedades", {
+      const response = await fetch("/api/propiedades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(propiedad),
+        body: JSON.stringify(propiedad),  
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        toast.success("Propiedad publicada");
         toast.success("Propiedad publicada");
         addActivity(
           user.userId,
@@ -295,6 +291,15 @@ export default function PropertyForm() {
       setLoading(false);
     }
   };
+
+  if (
+    !file.type.startsWith("image/") ||
+    !/\.(jpg|jpeg|png|webp)$/i.test(file.name)
+  ) {
+    toast.error("Formato de imagen no permitido");
+    return;
+  }
+
 
   if (loading) return <Spinner />;
 
@@ -351,7 +356,7 @@ export default function PropertyForm() {
             <label className="block">
               <span className="flex items-center gap-2">
                 <List size={18} className="text-[#0077b6]" />
-                Categroía
+                Categoría
               </span>
               <select
                 name="categoria"
@@ -596,9 +601,8 @@ export default function PropertyForm() {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${
-                isDragging ? "bg-blue-200 border-blue-400" : "bg-slate-50"
-              }`}
+              className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${isDragging ? "bg-blue-200 border-blue-400" : "bg-slate-50"
+                }`}
             >
               {imagenBase64 ? (
                 <img
