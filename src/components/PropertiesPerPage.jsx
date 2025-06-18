@@ -18,7 +18,6 @@ import { useState, useEffect } from "react";
 import PropertyModal from "./PropertyModal.jsx";
 import { motion } from "framer-motion";
 import { fetchProperties } from './FetchProperties.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from 'next/router';
 
 const PropertiesPerPage = ({
@@ -28,7 +27,6 @@ const PropertiesPerPage = ({
   initialProperties,
 }) => {
   console.log("initialProperties:", initialProperties);
-  const { token } = useAuth();
 
   // Estado de propiedades y paginación
   const [total, setTotal] = useState(0);
@@ -155,6 +153,24 @@ const PropertiesPerPage = ({
     if (filters.advanced.financiamiento) params.append("financiamiento", "true");
     return params.toString();
   };
+
+  useEffect(() => {
+    const fetchPropertiesData = async () => {
+      try {
+        const params = buildQueryParams();
+        const data = await fetchProperties({ query: params });
+        console.log(data);
+        const filteredProperties = data.properties.filter(p => p.categoria?.toLowerCase().trim() === category);
+        setProperties(filteredProperties);
+        setTotal(data.total);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    if (!properties || !properties.length) {
+      fetchPropertiesData();
+    }
+  }, [category, properties]);
 
   useEffect(() => {
     setProperties(initialProperties);
@@ -284,7 +300,7 @@ const PropertiesPerPage = ({
   };
 
   useEffect(() => {
-    if (initialProperties.length > 0) {
+    if (initialProperties) {
       setProperties(initialProperties);
       setTotal(initialProperties.length);
     }
@@ -581,13 +597,13 @@ const PropertiesPerPage = ({
       </div >
       {/* CARDS */}
       {
-        properties.length === 0 && total > 0 ? (
+        properties && properties.length === 0 && total > 0 ? (
           <p className="text-gray-600 text-center mb-10">
             No hay propiedades que coincidan con los filtros.
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-            {properties.map((prop) => (
+            {properties && properties.map((prop) => (
               <PropertyList
                 key={prop.id}
                 property={prop}

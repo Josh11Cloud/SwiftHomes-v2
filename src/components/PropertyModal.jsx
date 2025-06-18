@@ -1,6 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import ROIWithTooltip from "../sections/invest/ROITootlip";
+import { useState } from "react";
 import {
   MapPin,
   CircleParking,
@@ -16,6 +17,8 @@ import {
   ShieldCheck,
   ChartNoAxesColumnIncreasing,
   Clock,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
 
@@ -26,6 +29,18 @@ export default function PropertyModal({
   showROI,
 }) {
   const { favorites, toggleFavorite } = useFavorites();
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const imagenes = propiedad && propiedad.imagenes ? Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [] : [];
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
+  };
 
   if (!propiedad) return null;
 
@@ -57,7 +72,7 @@ export default function PropertyModal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.25 }}
-            className="bg-slate-50 p-6 rounded-xl z-10 shadow-xl relative max-w-2xl max-h-screen overflow-y-auto"
+            className="bg-slate-50 p-6 rounded-xl z-10 shadow-xl relative w-full max-w-3xl max-h-screen overflow-y-auto"
           >
             <span
               className="absolute top-4 left-4 cursor-pointer text-gray-500 hover:text-[#0077b6]"
@@ -91,15 +106,43 @@ export default function PropertyModal({
                 )}
               </motion.button>
             )}
-            <h2 className="text-2xl font-semibold mb-2 text-center">
+            <h2 className="text-2xl font-semibold mb-2 text-center text-gray-800">
               {propiedad.nombre}
             </h2>
 
-            <img
-              src={propiedad.imagen}
-              alt={propiedad.nombre}
-              className="rounded-t-2xl w-full h-60 object-cover mb-4"
-            />
+            <div className="relative w-full h-auto mb-4 flex justify-between">
+              <img
+                src={imagenes[currentIndex]}
+                alt={`${propiedad.nombre} - Imagen ${currentIndex + 1}`}
+                className="rounded-xl w-full aspect-[4/3] object-cover"
+              />
+
+              {/* Botón anterior */}
+              <button
+                onClick={handlePrev}
+                className="absolute top-1/2 left-1 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-scale-105 text-slate-50 px-2 py-4 rounded-lg shadow"
+              >
+                ‹
+              </button>
+
+              {/* Botón siguiente */}
+              <button
+                onClick={handleNext}
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-scale-105 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
+              >
+                ›
+              </button>
+
+              <div className="flex justify-center gap-1 mt-2">
+                {imagenes.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full ${i === currentIndex ? "bg-black" : "bg-gray-300"
+                      }`}
+                  />
+                ))}
+              </div>
+            </div>
 
             <div className="flex flex-wrap gap-3 text-sm text-gray-600 items-center mb-2">
               <div className="flex items-center gap-1">
@@ -112,16 +155,20 @@ export default function PropertyModal({
               </div>
               <div className="flex items-center gap-1">
                 <ShowerHead className="w-4 h-4 text-[#0077b6]" />
-                <span>{propiedad.baños}</span>
+                <span>{propiedad.banos}</span>
               </div>
               <div className="flex items-center gap-1">
                 <BedSingle className="w-4 h-4 text-[#0077b6]" />
                 <span>{propiedad.habitaciones}</span>
               </div>
-              <span className="text-sm text-gray-500 ml-auto">
+              <span className="text-md text-gray-500 ml-auto">
                 {propiedad.area}m²
               </span>
             </div>
+
+            <h2 className="text-2xl font-semibold mb-2 text-gray-800">
+              {propiedad.nombre}
+            </h2>
 
             <div className="px-1 pb-3 max-h-32 overflow-y-auto text-black text-sm scrollbar-thin scrollbar-thumb-gray-300">
               <span>{propiedad.descripcion}</span>
@@ -210,6 +257,52 @@ export default function PropertyModal({
                   )}
                 </div>
               )}
+              <h3 className="text-lg text-gray-800 font-bold mt-5 text-center">Publicado por</h3>
+              <div className="flex items-center gap-2 mt-5 mb-10">
+                <img src={propiedad.publicador_imagen} className="w-10 h-10 rounded-full" />
+                <div>
+                  <p className="font-semibold text-gray-600">{propiedad.publicador_nombre}</p>
+                  <p className="text-sm text-gray-500">{propiedad.publicador_telefono}</p>
+                </div>
+              </div>
+              <iframe
+                width="100%"
+                height="250"
+                frameBorder="0"
+                src={`https://maps.google.com/maps?q=${propiedad.ubicacion}&output=embed`}
+                allowFullScreen
+                className="rounded-lg mb-5 mt-5"
+              />
+              <div className="flex flex-col md:flex-row gap-3 mt-4 justify-center">
+                {/* WhatsApp */}
+                <a
+                  href={`https://wa.me/52${propiedad.publicador_telefono}?text=Hola, vi tu propiedad en SwiftHomes: ${propiedad.nombre}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 bg-green-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                >
+                  <i className="bi bi-whatsapp"></i>
+                  WhatsApp
+                </a>
+
+                {/* Llamar */}
+                <a
+                  href={`tel:+52${propiedad.publicador_telefono}`}
+                  className="flex items-center gap-2 bg-blue-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                >
+                  <Phone size={20} />
+                  Llamar
+                </a>
+
+                {/* Correo */}
+                <a
+                  href={`mailto:${propiedad.publicador_email}?subject=Interés en propiedad en SwiftHomes&body=Hola, estoy interesado en la propiedad ${propiedad.nombre}.`}
+                  className="flex items-center gap-2 bg-amber-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                >
+                  <Mail size={20} />
+                  Correo
+                </a>
+              </div>
             </div>
           </motion.div>
         </Dialog>

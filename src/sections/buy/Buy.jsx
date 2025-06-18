@@ -76,6 +76,7 @@ function Buy() {
         properties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta")}
         category="venta"
         propertiesPerPage={propertiesPerPage}
+        initialProperties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta")}
       />
     </>
   );

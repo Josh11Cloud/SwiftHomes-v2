@@ -185,13 +185,23 @@ def obtener_propiedades(user_id=None):
         return error_response(f"Error interno: {str(e)}", 500)
 
 @propiedades_bp.route("/api/propiedades/<int:propiedad_id>", methods=["GET"])
-@token_required
-def obtener_propiedad_por_id(user_id, propiedad_id):
+def obtener_propiedad_por_id(propiedad_id):
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM propiedades WHERE id = %s AND userid = %s", (propiedad_id, str(user_id)))
+        query = """
+            SELECT p.*, 
+            u.nombre AS publicador_nombre,
+            u.email AS publicador_email,
+            u.telefono AS publicador_telefono,
+            u.imagen AS publicador_imagen
+            FROM propiedades p
+            JOIN usuarios u ON u.userid = p.userid::int
+            WHERE p.id = %s
+        """
+
+        cur.execute(query, (propiedad_id,))
         propiedad = cur.fetchone()
 
         if not propiedad:
@@ -209,7 +219,6 @@ def obtener_propiedad_por_id(user_id, propiedad_id):
         return error_response(f"Error de validación: {str(e)}", 400)
     except Exception as e:
         return error_response(f"Error interno: {str(e)}", 500)
-
 @propiedades_bp.route("/api/propiedades/<int:propiedad_id>", methods=["PUT"])
 @token_required
 def editar_propiedad(user_id, propiedad_id):
