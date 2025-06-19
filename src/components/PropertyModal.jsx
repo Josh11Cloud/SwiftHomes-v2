@@ -1,7 +1,8 @@
 import { Dialog } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import ROIWithTooltip from "../sections/invest/ROITootlip";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import SimpleBot from './SimpleBot';
 import {
   MapPin,
   CircleParking,
@@ -19,6 +20,10 @@ import {
   Clock,
   Phone,
   Mail,
+  ChevronRight,
+  ChevronLeft,
+  BadgeCheck,
+  Star,
 } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
 
@@ -28,6 +33,8 @@ export default function PropertyModal({
   cerrar,
   showROI,
 }) {
+  if (!propiedad) return null;
+
   const { favorites, toggleFavorite } = useFavorites();
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,8 +49,6 @@ export default function PropertyModal({
     setCurrentIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   };
 
-  if (!propiedad) return null;
-
   const rentabilidadAnual = propiedad.precio > 0 ? (propiedad.ingresos_mensuales * 12) / propiedad.precio * 100 : 0;
 
   const getRentabilidadColor = (rentabilidad) => {
@@ -53,6 +58,28 @@ export default function PropertyModal({
   };
 
   const isFavorite = favorites.includes(String(propiedad.id));
+
+  const [usuario, setUsuario] = useState({});
+
+  useEffect(() => {
+    console.log('propiedad.userid:', propiedad.userid);
+    const obtenerUsuario = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:5500/api/usuarios/${propiedad.userid}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsuario(data);
+      } catch (error) {
+        console.error('Error al obtener el usuario:', error);
+      }
+    };
+    obtenerUsuario();
+  }, [propiedad.userid]);
+
+  console.log(Object.keys(propiedad))
+  console.log(propiedad);
 
   return (
     <AnimatePresence>
@@ -117,21 +144,30 @@ export default function PropertyModal({
                 className="rounded-xl w-full aspect-[4/3] object-cover"
               />
 
-              {/* Botón anterior */}
-              <button
-                onClick={handlePrev}
-                className="absolute top-1/2 left-1 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-scale-105 text-slate-50 px-2 py-4 rounded-lg shadow"
-              >
-                ‹
-              </button>
+              <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch">
+                {/* Botón anterior */}
+                <button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrev(e);
+                  }}
+                  className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
+                >
+                  <ChevronLeft size={18} />
+                </button>
 
-              {/* Botón siguiente */}
-              <button
-                onClick={handleNext}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-scale-105 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
-              >
-                ›
-              </button>
+                {/* Botón siguiente */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNext(e);
+                  }}
+                  className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
 
               <div className="flex justify-center gap-1 mt-2">
                 {imagenes.map((_, i) => (
@@ -170,7 +206,7 @@ export default function PropertyModal({
               {propiedad.nombre}
             </h2>
 
-            <div className="px-1 pb-3 max-h-32 overflow-y-auto text-black text-sm scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="px-1 pb-3 max-h-32 overflow-y-auto text-gray-600 text-sm leading-relaxed text-justify scrollbar-thin scrollbar-thumb-gray-300">
               <span>{propiedad.descripcion}</span>
             </div>
 
@@ -257,12 +293,27 @@ export default function PropertyModal({
                   )}
                 </div>
               )}
-              <h3 className="text-lg text-gray-800 font-bold mt-5 text-center">Publicado por</h3>
-              <div className="flex items-center gap-2 mt-5 mb-10">
-                <img src={propiedad.publicador_imagen} className="w-10 h-10 rounded-full" />
-                <div>
-                  <p className="font-semibold text-gray-600">{propiedad.publicador_nombre}</p>
-                  <p className="text-sm text-gray-500">{propiedad.publicador_telefono}</p>
+              <h3 className="text-lg text-gray-800 font-bold mt-5 text-start">Publicado por</h3>
+              <div className="flex items-center gap-2 mt-2 mb-10">
+                <img src={usuario.imagen} className="w-10 h-10 rounded-full hover:scale-105" />
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1">
+                    <p className="font-semibold text-gray-700">{usuario.nombre}</p>
+                    {usuario.verificado && (
+                      <BadgeCheck size={16} fill="#0077b6" className="text-slate-100" />)}
+                    {usuario.calificacion && (
+                      <div title="Calificación en base a reseñas" className="flex items-center gap-1 text-gray-700 hover:scale-105">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star
+                            key={i}
+                            size={16}
+                            fill={i < Math.floor(usuario.calificacion) ? "#ffd700" : "#ccc"}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">{usuario.telefono}</p>
                 </div>
               </div>
               <iframe
@@ -271,15 +322,15 @@ export default function PropertyModal({
                 frameBorder="0"
                 src={`https://maps.google.com/maps?q=${propiedad.ubicacion}&output=embed`}
                 allowFullScreen
-                className="rounded-lg mb-5 mt-5"
+                className="rounded-lg mb-5 mt-5 border border-md border-slate-400 shadow-lg"
               />
-              <div className="flex flex-col md:flex-row gap-3 mt-4 justify-center">
+              <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch w-full mt-4">
                 {/* WhatsApp */}
                 <a
-                  href={`https://wa.me/52${propiedad.publicador_telefono}?text=Hola, vi tu propiedad en SwiftHomes: ${propiedad.nombre}`}
+                  href={`https://wa.me/52${usuario.telefono}?text=Hola, vi tu propiedad en SwiftHomes: ${propiedad.nombre}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-green-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                  className="flex w-full md:w-auto text-center items-center gap-2 bg-green-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
                 >
                   <i className="bi bi-whatsapp"></i>
                   WhatsApp
@@ -287,8 +338,8 @@ export default function PropertyModal({
 
                 {/* Llamar */}
                 <a
-                  href={`tel:+52${propiedad.publicador_telefono}`}
-                  className="flex items-center gap-2 bg-blue-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                  href={`tel:+52${usuario.telefono}`}
+                  className="flex items-center w-full md:w-auto text-center gap-2 bg-[#0077b6] text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
                 >
                   <Phone size={20} />
                   Llamar
@@ -296,17 +347,19 @@ export default function PropertyModal({
 
                 {/* Correo */}
                 <a
-                  href={`mailto:${propiedad.publicador_email}?subject=Interés en propiedad en SwiftHomes&body=Hola, estoy interesado en la propiedad ${propiedad.nombre}.`}
-                  className="flex items-center gap-2 bg-amber-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+                  href={`mailto:${usuario.email}?subject=Interés en propiedad en SwiftHomes&body=Hola, estoy interesado en la propiedad ${propiedad.nombre}.`}
+                  className="flex items-center w-full md:w-auto text-center gap-2 border border-red-600 bg-white text-red-600 px-4 py-2 font-semibold rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
                 >
                   <Mail size={20} />
                   Correo
                 </a>
               </div>
             </div>
+            <SimpleBot />
           </motion.div>
-        </Dialog>
-      )}
-    </AnimatePresence>
+        </Dialog >
+      )
+      }
+    </AnimatePresence >
   );
 }

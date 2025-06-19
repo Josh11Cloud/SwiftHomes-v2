@@ -22,7 +22,6 @@ import ROIWithTooltip from "../sections/invest/ROITootlip";
 import { useFavorites } from "../context/FavoritesContext";
 
 export default function PropertyList({ property, showROI }) {
-  console.log("PropertyList:", property);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { favorites, toggleFavorite } = useFavorites();
@@ -109,7 +108,7 @@ export default function PropertyList({ property, showROI }) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={abrirModal}
-        className="cursor-pointer p-4 relative bg-slate-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-200 px-4 py-2 h-auto"
+        className="cursor-pointer p-4 relative bg-slate-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-200 px-4 py-2 h-auto mb-6"
       >
         {/* TAGS DE OPORTUNIDAD */}
         <div className="absolute top-3 left-3 flex items-center gap-2 overflow-x-auto max-w-[90%] scrollbar-hide">
@@ -158,28 +157,30 @@ export default function PropertyList({ property, showROI }) {
             alt={`${property.nombre} - Imagen ${currentImage + 1}`}
             className="rounded-xl w-full aspect-[4/3] object-cover"
           />
-          {/* Botón anterior */}
-          <button
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrev(e);
-            }}
-            className="absolute top-1/2 left-1 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow"
-          >
-            <ChevronLeft size={18} />
-          </button>
+          <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch">
+            {/* Botón anterior */}
+            <button
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrev(e);
+              }}
+              className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-          {/* Botón siguiente */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNext(e);
-            }}
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
-          >
-            <ChevronRight size={18} />
-          </button>
+            {/* Botón siguiente */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNext(e);
+              }}
+              className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-slate-50 px-2 py-4 rounded-lg shadow z-10"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
 
         <h2 className="text-lg font-semibold mb-2 text-gray-800">
@@ -246,13 +247,13 @@ export default function PropertyList({ property, showROI }) {
               )}
             </div>
           )}
-          <div className="flex flex-col md:flex-row gap-3 justify-center">
+          <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch w-full mt-4">
             {/* WhatsApp */}
             <a
-              href={`https://wa.me/52${property.publicador_telefono}?text=Hola, vi tu property en SwiftHomes: ${property.nombre}`}
+              href={`https://wa.me/52${property.publicador_telefono}?text=Hola, vi tu propiedad en SwiftHomes: ${property.nombre}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+              className="flex w-full md:w-auto text-center items-center gap-2 bg-green-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
             >
               <i className="bi bi-whatsapp"></i>
               WhatsApp
@@ -261,7 +262,7 @@ export default function PropertyList({ property, showROI }) {
             {/* Llamar */}
             <a
               href={`tel:+52${property.publicador_telefono}`}
-              className="flex items-center gap-2 bg-blue-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+              className="flex items-center w-full md:w-auto text-center gap-2 bg-[#0077b6] text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
             >
               <Phone size={20} />
               Llamar
@@ -270,7 +271,7 @@ export default function PropertyList({ property, showROI }) {
             {/* Correo */}
             <a
               href={`mailto:${property.publicador_email}?subject=Interés en propiedad en SwiftHomes&body=Hola, estoy interesado en la propiedad ${property.nombre}.`}
-              className="flex items-center gap-2 bg-amber-600 text-slate-50 px-4 py-2 rounded-md hover:scale-105 transition"
+              className="flex items-center w-full md:w-auto text-center gap-2 border border-red-600 bg-white text-red-600 px-4 py-2 font-semibold rounded-md hover:scale-105 transition-all duration-200 ease-in-out transform"
             >
               <Mail size={20} />
               Correo

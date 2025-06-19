@@ -26,7 +26,6 @@ const PropertiesPerPage = ({
   category = "renta",
   initialProperties,
 }) => {
-  console.log("initialProperties:", initialProperties);
 
   // Estado de propiedades y paginación
   const [total, setTotal] = useState(0);
@@ -159,7 +158,6 @@ const PropertiesPerPage = ({
       try {
         const params = buildQueryParams();
         const data = await fetchProperties({ query: params });
-        console.log(data);
         const filteredProperties = data.properties.filter(p => p.categoria?.toLowerCase().trim() === category);
         setProperties(filteredProperties);
         setTotal(data.total);

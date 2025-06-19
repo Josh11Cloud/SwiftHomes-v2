@@ -12,6 +12,8 @@ def get_connection():
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD")
         )
+        cur = conn.cursor()
+        cur.execute("SET CLIENT_ENCODING TO 'UTF8'")
         return conn
     except psycopg2.Error as e:
         print("Error al conectar a la base de datos:", e)

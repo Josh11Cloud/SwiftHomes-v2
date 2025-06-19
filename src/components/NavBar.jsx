@@ -38,9 +38,9 @@ function Navbar() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger className="hover:text-[#0077b6] hover:scale-110 transition cursor-pointer">
-                      {user.photoURL ? (
+                      {user.imagen ? (
                         <img
-                          src={user.photoURL}
+                          src={user.imagen}
                           alt="Foto de perfil"
                           className="w-20 h-20 rounded-full object-cover border border-slate-200"
                         />

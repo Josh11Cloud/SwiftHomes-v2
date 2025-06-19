@@ -15,12 +15,7 @@ function MyApp({ Component, pageProps }) {
           <FavoritesProvider>
             <Head>
               <title>SwiftHomes</title>
-              <meta charset="UTF-8" />
               <link rel="icon" href="/assets/icons/SwiftHomes-logo-png.png" />
-              <link
-                rel="stylesheet"
-                href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-              />
             </Head>
             <Toaster reverseOrder={false} />
             <Navbar />
