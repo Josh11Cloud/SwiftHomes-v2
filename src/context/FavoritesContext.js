@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 
 const FavoritesContext = createContext();
-const API_URL = "http://localhost:5500/api/favoritos";
+const API_URL = "http://192.168.100.64:5500/api/favoritos";
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
@@ -58,6 +58,7 @@ export const FavoritesProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("Error actualizando favoritos:", err);
+      alert("ERROR: " + err.message);
       setFavorites((prev) =>
         isFavorite ? [...prev, id] : prev.filter((f) => f !== id)
       );

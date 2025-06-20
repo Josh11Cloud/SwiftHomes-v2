@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Spinner from '../../components/Spinner.jsx';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
+import SimpleBot from '../../components/SimpleBot.jsx';
 
 function Buy() {
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,7 @@ function Buy() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:5500/api/propiedades");
+        const res = await fetch("http://192.168.100.64:5500/api/propiedades");
         if (!res.ok) throw new Error("No se pudo obtener propiedades");
 
         const fetchedProperties = await res.json();
@@ -70,6 +71,8 @@ function Buy() {
           className="w-full sm:w-full md:w-1/2 h-60 max-h-64 object-contain"
         />
       </section>
+
+      <SimpleBot />
 
       {/* PROPIEDADES */}
       <PropertiesPerPage

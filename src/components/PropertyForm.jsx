@@ -242,16 +242,15 @@ export default function PropertyForm() {
     };
 
     try {
-      const response = await fetch("/api/propiedades", {
+      const response = await fetch("http://192.168.100.64:5500/api/propiedades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(propiedad),  
+        body: JSON.stringify(propiedad),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Propiedad publicada");
         toast.success("Propiedad publicada");
         addActivity(
           user.userId,
@@ -415,7 +414,7 @@ export default function PropertyForm() {
               <input
                 type="checkbox"
                 name="negociable"
-                checked={form.negociable}
+                checked={form.precioNegociable}
                 onChange={handleChange}
                 className="h-4 w-4"
               />

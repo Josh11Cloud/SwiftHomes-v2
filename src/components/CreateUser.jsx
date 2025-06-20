@@ -2,15 +2,17 @@ import { useState } from "react";
 import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
 import Link from 'next/link';
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 
 export default function CreateUser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); 
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [imagen, setImagen] = useState("");
+
 
   const { register } = useAuth();
 
@@ -19,8 +21,12 @@ export default function CreateUser() {
     setLoading(true);
     setError("");
     try {
-      const success = await register(name, email, password);
+      const success = await register(name, email, password, imagen);
+      console.log("¿Se registró correctamente?", success);
       if (success) {
+        if (typeof window !== "undefined") {
+          router.push("/");
+        }
         router.push("/");
       }
     } catch (error) {
@@ -48,6 +54,15 @@ export default function CreateUser() {
           className="w-full p-2 rounded-xl mb-5 border focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
           required
         />
+        <div>
+          <label className="text-sm text-slate-500">Imagen (URL)</label>
+          <input
+            type="url"
+            value={imagen}
+            onChange={(e) => setImagen(e.target.value)}
+            className="w-full border rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+          />
+        </div>
         <input
           type="email"
           placeholder="Correo electrónico"
@@ -65,8 +80,8 @@ export default function CreateUser() {
           required
         />
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={`w-full py-2 rounded-xl ${loading ? "bg-gray-400" : "bg-[#0077b6] hover:bg-[#005f87]"} text-slate-50`}
           disabled={loading}
         >

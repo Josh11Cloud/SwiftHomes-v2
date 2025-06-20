@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
   const isAuthenticated = !!user && !!token;
-  const API_URL = "http://localhost:5500/api";
+  const API_URL = "http://192.168.100.64:5500/api";
 
   useEffect(() => {
     const loadUser = async () => {
@@ -54,8 +54,8 @@ export function AuthProvider({ children }) {
         return false;
       }
       const data = await res.json();
-      const { access_token } = data;
-      localStorage.setItem("token", access_token);
+      const { access_token, refresh_token } = data;
+      localStorage.setItem("refresh_token", refresh_token);
 
       const profileRes = await fetch(`${API_URL}/profile`, {
         headers: { Authorization: `Bearer ${access_token}` },
@@ -74,12 +74,12 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const register = useCallback(async (name, email, password) => {
+  const register = useCallback(async (nombre, email, password, imagen) => {
     try {
       const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ nombre, email, password, imagen }),
       });
 
       if (!res.ok) {
@@ -90,19 +90,46 @@ export function AuthProvider({ children }) {
 
       toast.success("¡Registro exitoso!");
 
-      return await login(email, password);
+      const loginSuccess = await login(email, password);
+      if (loginSuccess) {
+        return true;
+      } else {
+        toast.error("Registro exitoso pero no se pudo iniciar sesión automáticamente.");
+        setLoading(false);
+        return false;
+      }
     } catch (error) {
       toast.error("Error al registrar: " + error.message);
+      setLoading(false);
       return false;
     }
   }, [login]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setToken(null);
-    toast.success("Sesión cerrada con éxito");
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      const refreshToken = localStorage.getItem("refresh_token");
+
+      if (refreshToken) {
+        await fetch(`${API_URL}/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+      }
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      setUser(null);
+      setToken(null);
+      toast.success("Sesión cerrada con éxito");
+    } catch (error) {
+      toast.error("Error al cerrar sesión");
+      console.error(error);
+    }
+  }, [token]);
 
   return (
     <AuthContext.Provider value={{ user, token, isAuthenticated, loading, loginLoading, login, logout, register }}>

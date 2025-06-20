@@ -1,90 +1,55 @@
 import { useState, useEffect, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import {
-  EmailAuthProvider,
-  getAuth,
-  reauthenticateWithCredential,
-  updateEmail,
-  updatePassword,
-  updateProfile,
-} from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
-import db from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { addActivity } from "./AddActivity";
 
 function EditProfileModal({ isOpen, onClose }) {
-  const { user, refreshUser } = useAuth();
-  const auth = getAuth();
-
-  const [displayName, setDisplayName] = useState(user.displayName || "");
-  const [imagenBase64, setImagenBase64] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [nombre, setNombre] = useState(user?.nombre || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setDisplayName(user.displayName || "");
-    }
-  }, [user]);
+  const { token, refreshUser } = useAuth();
+  const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
 
   const handleSave = async () => {
     setLoading(true);
 
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        currentPassword
-      );
-
-      await reauthenticateWithCredential(auth.currentUser, credential);
-
-      await updateProfile(auth.currentUser, {
-        displayName,
-        photoURL: imagenBase64,
+      const res = await fetch("http://192.168.100.64:5500/api/profile/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ nombre, email, photoURL }),
       });
 
-      if (newEmail && newEmail !== user.email) {
-        await updateEmail(auth.currentUser, newEmail);
-        addActivity(
-          user.userId,
-          "updated_email",
-          "El usuario ha actualizado su correo"
-        );
+      const result = await res.json();
+
+      if (!res.ok) {
+        toast.error(result.error || "Error al actualizar perfil");
+        return;
       }
 
-      if (newPassword) {
-        await updatePassword(auth.currentUser, newPassword);
-        addActivity(
-          user.userId,
-          "updated_password",
-          "El usuario ha actualizado su contraseña"
-        );
-      }
-
-      await updateDoc(doc(db, "users", user.userId), {
-        displayName,
-        photoURL: imagenBase64,
-        ...(newEmail && { email: newEmail }),
-      });
-
-      addActivity(
-        user.userId, "profile_update",
-        "El usuario ha actualizado su perfil"
-      );
+      // Registro en dashboard
+      await addActivity(user.userid, "update_profile", "El usuario actualizó su perfil");
 
       await refreshUser();
       toast.success("Perfil actualizado correctamente");
       onClose();
-    } catch (error) {
-      toast.error("Error al actualizar: " + error.message);
+    } catch (err) {
+      toast.error("Error de red al actualizar: " + err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      setDisplayName(user.displayName || "");
+      setPhotoURL(user.photoURL || "");
+    }
+  }, [user]);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -113,8 +78,18 @@ function EditProfileModal({ isOpen, onClose }) {
                   <label className="text-sm text-slate-500">Nombre</label>
                   <input
                     type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    className="w-full border rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-slate-500">Correo</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full border rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   />
                 </div>
@@ -123,22 +98,21 @@ function EditProfileModal({ isOpen, onClose }) {
                   <label className="text-sm text-slate-500">Imagen (URL)</label>
                   <input
                     type="url"
-                    value={imagenBase64}
-                    onChange={(e) => setImagenBase64(e.target.value)}
+                    value={photoURL}
+                    onChange={(e) => setPhotoURL(e.target.value)}
                     className="w-full border rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
                   />
                 </div>
 
-                <div>
-                  <label className="text-sm text-slate-500">Nuevo Email</label>
-                  <input
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full border rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
-                    placeholder="Opcional"
-                  />
-                </div>
+                {photoURL && (
+                  <div className="flex justify-center">
+                    <img
+                      src={photoURL}
+                      alt="Vista previa"
+                      className="w-24 h-24 rounded-full object-cover border"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="text-sm text-slate-500">
@@ -176,7 +150,7 @@ function EditProfileModal({ isOpen, onClose }) {
                   </button>
                   <button
                     onClick={handleSave}
-                    disabled={loading}
+                    disabled={loading || !currentPassword}
                     className="px-4 py-2 bg-[#0077b6] text-white rounded-xl text-sm hover:bg-[#005f87]"
                   >
                     {loading ? "Guardando..." : "Guardar Cambios"}

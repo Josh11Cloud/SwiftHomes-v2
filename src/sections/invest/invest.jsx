@@ -11,13 +11,13 @@ function Invest() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5500/api/propiedades");
+      const res = await fetch("http://192.168.100.64:5500/api/propiedades");
       const { properties } = await res.json();
 
       const propiedadesConROI = await Promise.all(
         properties.map(async (prop) => {
           try {
-            const roiRes = await fetch(`http://127.0.0.1:5500/api/roi/${prop.id}`);
+            const roiRes = await fetch(`http://192.168.100.64:5500/api/roi/${prop.id}`);
             const roiData = await roiRes.json();
 
             return {

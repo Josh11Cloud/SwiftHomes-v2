@@ -15,11 +15,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 @auth_bp.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
+    print("Datos recibidos:", data)
     nombre = data.get("nombre")
     email = data.get("email")
     password = data.get("password")
+    imagen = data.get("imagen")
 
-    if not all([nombre, email, password]):
+    if not all([nombre, email, password, imagen]):
         return jsonify({"error": "Faltan campos"}), 400
 
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -36,9 +38,9 @@ def register():
 
     try:
         cursor.execute("""
-            INSERT INTO usuarios (nombre, email, password, role)
-            VALUES (%s, %s, %s, 'usuario')
-        """, (nombre, email, hashed_password))
+            INSERT INTO usuarios (nombre, email, password, imagen, role)
+            VALUES (%s, %s, %s, %s, 'usuario')
+        """, (nombre, email, hashed_password, imagen))
         conn.commit()
         return jsonify({"message": "Usuario registrado con éxito"}), 201
     except Exception as e:
@@ -65,7 +67,7 @@ def login():
 
     userid, hashed_pw = user
 
-    if not bcrypt.checkpw(password.encode("utf-8"), bytes(hashed_pw)):
+    if not bcrypt.checkpw(password.encode("utf-8"), hashed_pw.tobytes()):
         return jsonify({"error": "Contraseña incorrecta"}), 401
 
     access_token = jwt.encode({
@@ -77,6 +79,12 @@ def login():
         "userid": userid,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30)
     }, SECRET_KEY, algorithm="HS256")
+
+    print("Usuario:", email)
+    print("Hash desde la DB:", hashed_pw)
+    print("Password ingresada:", password)
+    print("Resultado comparación:", bcrypt.checkpw(password.encode("utf-8"), hashed_pw.tobytes()))
+
 
     return jsonify({"access_token": access_token, "refresh_token": refresh_token})
     
@@ -103,7 +111,7 @@ revoked_tokens = set()
 
 @auth_bp.route("/api/logout", methods=["POST"])
 @token_required
-def logout():
+def logout(userid):
     refresh_token = request.json.get("refresh_token")
     conn = get_connection()
     cursor = conn.cursor()
@@ -142,16 +150,23 @@ def refresh_token():
 def get_profile(userid):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT nombre, email, role FROM usuarios WHERE userid = %s", (userid,))
+    cursor.execute("SELECT nombre, email, imagen, role FROM usuarios WHERE userid = %s", (userid,))
     user = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
+    
     if not user:
+        cursor.close()
+        conn.close()
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    nombre, email, role = user
-    return jsonify({"nombre": nombre, "email": email, "role": role}), 200
+    nombre, email, imagen, role = user
+    cursor.close()
+    conn.close()
+    return jsonify({
+        "nombre": nombre,
+        "email": email,
+        "imagen": imagen,
+        "role": role
+    }), 200
 
 @auth_bp.route("/api/profile/update", methods=["PUT"])
 @token_required
@@ -159,6 +174,7 @@ def update_profile(userid):
     data = request.get_json()
     nuevo_nombre = data.get("nombre")
     nuevo_email = data.get("email")
+    nueva_imagen = data.get("photoURL")
 
     if not nuevo_nombre or not nuevo_email:
         return jsonify({"error": "Nombre y email son requeridos"}), 400
@@ -169,9 +185,9 @@ def update_profile(userid):
     try:
         cursor.execute("""
             UPDATE usuarios
-            SET nombre = %s, email = %s
+            SET nombre = %s, email = %s, imagen = %s
             WHERE userid = %s
-        """, (nuevo_nombre, nuevo_email, userid))
+        """, (nuevo_nombre, nuevo_email, nueva_imagen, userid))
         conn.commit()
 
         return jsonify({"message": "Perfil actualizado con éxito"}), 200

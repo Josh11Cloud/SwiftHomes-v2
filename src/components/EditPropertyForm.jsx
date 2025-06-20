@@ -104,7 +104,7 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
   if (hasPermission === null) return <Spinner />;
 
   if (!hasPermission) {
-    return <div>No tienes permiso para editar esta propiedad</div>;
+    return <div className="text-gray-600 text-center text-md">No tienes permiso para editar esta propiedad</div>;
   }
 
   const handleChange = (e) => {
@@ -172,7 +172,7 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
     }
     try {
       const response = await fetch(
-        `http://localhost:5000/api/propiedades/${id}`,
+        `http://192.168.100.64:5500/api/propiedades/${id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

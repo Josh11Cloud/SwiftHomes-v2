@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Spinner from '../../components/Spinner.jsx';
 import PropertiesPerPage from '../../components/PropertiesPerPage.jsx';
 import { toast } from 'sonner';
+import SimpleBot from '../../components/SimpleBot';
 
 function Rent() {
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,7 @@ function Rent() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:5500/api/propiedades");
+        const res = await fetch("http://192.168.100.64:5500/api/propiedades");
         if (!res.ok) throw new Error("No se pudo obtener propiedades");
 
         const fetchedProperties = await res.json();
@@ -51,7 +52,7 @@ function Rent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-3xl md:text-5xl font-bold mb-4 text-slate-100">
-            Vive donde quieras sin <span className="text-gray-900">Compromisos</span>
+            Encuentra tu nuevo <span className="text-gray-900">Hogar</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -62,8 +63,8 @@ function Rent() {
           </motion.p>
         </div>
         <motion.img
-          src="/assets/images/llave.png"
-          alt="Llave"
+          src="/assets/images/casa.png"
+          alt="House"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -71,11 +72,14 @@ function Rent() {
         />
       </section>
 
+      <SimpleBot />
+
       {/* PROPIEDADES */}
       <PropertiesPerPage
         properties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "renta")}
         category="renta"
         propertiesPerPage={propertiesPerPage}
+        initialProperties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "renta")}
       />
     </>
   );
