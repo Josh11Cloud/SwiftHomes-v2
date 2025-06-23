@@ -2,37 +2,18 @@ from flask import Blueprint, jsonify, request
 from db import get_connection
 import json
 from functools import wraps
-import jwt
 import os
-from jwt import ExpiredSignatureError, InvalidTokenError
 from dotenv import load_dotenv
+from datetime import datetime
+from utils.utils import token_required
+
+def error_response(message, status_code):
+    return jsonify({"error": message}), status_code
 
 propiedades_bp = Blueprint("propiedades", __name__)
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = None
-        if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
-        if not token:
-            return jsonify({"error": "Token faltante"}), 401
-        try:
-            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            user_id = data["userid"]
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expirado"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Token inválido"}), 401
-
-        return f(user_id, *args, **kwargs)
-    return decorated_function
-
-def error_response(message="Error interno", status=500):
-    return jsonify({"error": message}), status
 
 @propiedades_bp.route("/api/propiedades", methods=["GET"])
 def obtener_propiedades(user_id=None):
@@ -184,6 +165,73 @@ def obtener_propiedades(user_id=None):
         print("Error:", str(e))
         return error_response(f"Error interno: {str(e)}", 500)
 
+@propiedades_bp.route("/api/propiedades", methods=["POST"])
+@token_required
+def crear_propiedad(user_id):
+    try:
+        data = request.get_json()
+
+        # Validar los datos
+        required_fields = ["nombre", "precio", "categoria", "userid", "ubicacion", "imagenes"]
+        for field in required_fields:
+            if field not in data:
+                return error_response(f"El campo {field} es requerido", 400)
+
+        # Crear la propiedad
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+            INSERT INTO propiedades (
+                nombre, precio, renta, tipo, habitaciones, banos, area, estacionamientos,
+                descripcion, categoria, userid, antiguedad, financiamiento, servicios,
+                remodelar, precionegociable, seguridad, piscina, status, fecha, visitas,
+                ingresos_mensuales, gastos_anuales, imagenes, ubicacion
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            ) RETURNING id
+        """
+
+        params = (
+            data["nombre"],
+            data["precio"],
+            data.get("renta"),
+            data.get("tipo"),
+            data.get("habitaciones"),
+            data.get("banos"),
+            data.get("area"),
+            data.get("estacionamientos"),
+            data.get("descripcion"),
+            data["categoria"],
+            data["userid"],
+            data.get("antiguedad"),
+            data.get("financiamiento", False),
+            data.get("servicios", []),
+            data.get("remodelar", False),
+            data.get("precionegociable", False),
+            data.get("seguridad", False),
+            data.get("piscina", False),
+            "activo",
+            datetime.now(),
+            [],
+            data.get("ingresos_mensuales"),
+            data.get("gastos_anuales"),
+            data["imagenes"],
+            data["ubicacion"]
+        )
+
+        cur.execute(query, params)
+        propiedad_id = cur.fetchone()[0]
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"mensaje": "Propiedad creada correctamente", "id": propiedad_id}), 201
+
+    except Exception as e:
+        return error_response(f"Error interno: {str(e)}", 500)
+
 @propiedades_bp.route("/api/propiedades/<int:propiedad_id>", methods=["GET"])
 def obtener_propiedad_por_id(propiedad_id):
     try:
@@ -236,7 +284,6 @@ def editar_propiedad(user_id, propiedad_id):
         if not propiedad:
             return jsonify({"error": "Propiedad no encontrada o acceso denegado"}), 404
 
-        # Lista de campos editables
         campos = ["nombre", "precio", "renta", "tipo", "habitaciones", "banos", "area", "estacionamientos", 
         "descripcion", "categoria","antiguedad", 
         "financiamiento", "servicios", "remodelar", "precionegociable", "seguridad", "piscina", 
@@ -270,29 +317,50 @@ def editar_propiedad(user_id, propiedad_id):
         return error_response(f"Error de validación: {str(e)}", 400)
     except Exception as e:
         return error_response(f"Error interno: {str(e)}", 500)
-    
-@propiedades_bp.route("/api/propiedades/<int:propiedad_id>", methods=["DELETE"])
+
+@propiedades_bp.route("/api/mis-propiedades", methods=["GET"])
 @token_required
-def eliminar_propiedad(user_id, propiedad_id):
+def obtener_mis_propiedades(user_id):
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM propiedades WHERE id = %s AND userid = %s", (propiedad_id, str(user_id)))
+        cur.execute("SELECT * FROM propiedades WHERE userid = %s", (str(user_id),))
+        rows = cur.fetchall()
+        columnas = [desc[0] for desc in cur.description]
+
+        propiedades = []
+        for row in rows:
+            propiedad_dict = dict(zip(columnas, row))
+            propiedades.append(propiedad_dict)
+
+        cur.close()
+        conn.close()
+        return jsonify(propiedades), 200
+
+    except Exception as e:
+        print("Error al obtener propiedades:", e)
+        return error_response("Error al obtener propiedades", 500)
+
+@propiedades_bp.route("/api/propiedades/<int:id>", methods=["DELETE"])
+@token_required
+def eliminar_propiedad(user_id, id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM propiedades WHERE id = %s AND userid = %s", (id, user_id))
         propiedad = cur.fetchone()
 
         if not propiedad:
-            return jsonify({"error": "Propiedad no encontrada o acceso denegado"}), 404
+            return jsonify({"error": "Propiedad no encontrada o no autorizada"}), 404
 
-        cur.execute("DELETE FROM propiedades WHERE id = %s AND userid = %s", (propiedad_id, str(user_id)))
+        cur.execute("DELETE FROM propiedades WHERE id = %s", (id,))
         conn.commit()
+
         cur.close()
         conn.close()
-
-        return jsonify({"mensaje": "Propiedad eliminada correctamente"}), 200
-
+        return jsonify({"mensaje": "Propiedad eliminada"}), 200
     except Exception as e:
-        import traceback
-        print(f"Error: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
+        print("Error al eliminar propiedad:", e)
+        return error_response("Error al eliminar propiedad", 500)

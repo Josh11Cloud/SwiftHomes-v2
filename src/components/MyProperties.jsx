@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import db from "../firebase/config";
 import PropertyList from "./PropertyList";
-import {
-  doc,
-  query,
-  where,
-  getDocs,
-  collection,
-  deleteDoc,
-} from "firebase/firestore";
 import { Trash2, Pencil } from "lucide-react";
 import EditProperty from "./EditPropertyForm";
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import Spinner from './Spinner';
 
@@ -24,38 +16,77 @@ function MyProperties() {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const propertiesPerPage = 6;
+  const router = useRouter();
+  const [token, setToken] = useState(null);
+  const API_URL = "http://192.168.100.64:5500";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      console.log('Token en localStorage:', storedToken);
+      setToken(storedToken);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchProperties = async () => {
       try {
-        const q = query(
-          collection(db, "propiedades"),
-          where("userId", "==", user.userId)
-        );
-        const querySnapshot = await getDocs(q);
-        const props = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const response = await fetch(`${API_URL}/api/mis-propiedades`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log('Response:', response);
+
+        if (!response.ok) {
+          const data = await response.json();
+          console.log('Error:', data);
+          throw new Error(data.error || "Error al obtener propiedades");
+        }
+
+        const props = await response.json();
+        console.log('Properties:', props);
         setProperties(props);
       } catch (error) {
-        toast.error("Error al obtener propiedades:" + error);
+        console.log('Error:', error);
+        toast.error("Error al obtener propiedades: " + error.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProperties();
-  }, [user]);
+  }, [user, token]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "propiedades", id));
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${API_URL}/api/propiedades/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        toast.error("Sesión expirada. Por favor inicia sesión nuevamente.");
+        router.push("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Error al eliminar propiedad");
+      }
+
       setProperties(properties.filter((property) => property.id !== id));
+      toast.success("Propiedad eliminada correctamente");
     } catch (error) {
-      toast.error("Error al eliminar propiedad:" + error);
+      toast.error("Error al eliminar propiedad: " + error.message);
     }
   };
 
@@ -147,9 +178,8 @@ function MyProperties() {
       <div className="flex justify-center items-center gap-2 mt-4">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
-          className={`px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100 ${
-            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100 ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           disabled={currentPage === 1}
         >
           Anterior
@@ -160,11 +190,10 @@ function MyProperties() {
             <button
               key={i}
               onClick={() => handlePageChange(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-[#0077B6] text-white"
-                  : "bg-slate-100 text-gray-700 hover:bg-slate-200"
-              }`}
+              className={`px-3 py-1 rounded ${currentPage === i + 1
+                ? "bg-[#0077B6] text-white"
+                : "bg-slate-100 text-gray-700 hover:bg-slate-200"
+                }`}
             >
               {i + 1}
             </button>
@@ -173,11 +202,10 @@ function MyProperties() {
 
         <button
           onClick={() => handlePageChange(currentPage + 1)}
-          className={`px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100 ${
-            currentPage === Math.ceil(properties.length / propertiesPerPage)
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-          }`}
+          className={`px-3 py-1 bg-slate-100 text-gray-800 rounded hover:bg-[#0077b6] hover:text-slate-100 ${currentPage === Math.ceil(properties.length / propertiesPerPage)
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+            }`}
           disabled={
             currentPage === Math.ceil(properties.length / propertiesPerPage)
           }

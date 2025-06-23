@@ -150,7 +150,7 @@ def refresh_token():
 def get_profile(userid):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT nombre, email, imagen, role FROM usuarios WHERE userid = %s", (userid,))
+    cursor.execute("SELECT userid, nombre, email, imagen, role FROM usuarios WHERE userid = %s", (userid,))
     user = cursor.fetchone()
     
     if not user:
@@ -158,10 +158,11 @@ def get_profile(userid):
         conn.close()
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    nombre, email, imagen, role = user
+    userid, nombre, email, imagen, role = user
     cursor.close()
     conn.close()
     return jsonify({
+        "userid": userid,
         "nombre": nombre,
         "email": email,
         "imagen": imagen,

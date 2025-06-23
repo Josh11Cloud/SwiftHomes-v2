@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, getDocs } from "firebase/firestore";
-import db from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "./Spinner";
 
@@ -12,20 +10,28 @@ function ActivityHistory() {
 
   useEffect(() => {
     const fetchActivities = async () => {
-      if (!user || !user.userId) {
+      if (!user || !user.userid) {
         setError("Usuario no autenticado");
         setLoading(false);
         return;
       }
 
       try {
-        const q = query(
-          collection(db, "activities", user.userId, "logs"),
-          orderBy("timestamp", "desc")
-        );
-        const querySnapshot = await getDocs(q);
-        const activityList = querySnapshot.docs.map((doc) => doc.data());
-        setActivities(activityList);
+        const token = localStorage.getItem("token");
+
+        const response = await fetch("http://192.168.100.64:5500/api/actividad", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || "Error al obtener actividades");
+        }
+
+        const data = await response.json();
+        setActivities(data);
       } catch (error) {
         console.error("Error al obtener actividades:", error);
         setError(error.message);
@@ -37,19 +43,12 @@ function ActivityHistory() {
     fetchActivities();
   }, [user]);
 
-  if (loading) {
-    return <Spinner />;
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
+  if (loading) return <Spinner />;
+  if (error) return <p className="text-red-500 text-center">{error}</p>;
 
   return (
     <div className="space-y-4 text-center mb-5">
-      <h3 className="text-2xl font-bold text-[#0077b6]">
-        Historial de Actividad
-      </h3>
+      <h3 className="text-2xl font-bold text-[#0077b6]">Historial de Actividad</h3>
       {activities.length > 0 ? (
         activities.map((activity, index) => (
           <div
@@ -61,12 +60,12 @@ function ActivityHistory() {
             </p>
             <p className="text-sm text-slate-500">{activity.description}</p>
             <p className="text-xs text-slate-400">
-              {activity.timestamp?.toDate().toLocaleString()}
+              {new Date(activity.timestamp).toLocaleString()}
             </p>
           </div>
         ))
       ) : (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 text-center">
           No se han registrado actividades recientes.
         </p>
       )}

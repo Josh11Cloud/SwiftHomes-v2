@@ -1,18 +1,26 @@
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { v4 as uuidv4 } from "uuid";
-import db from "../firebase/config";
-
-export const addActivity = async (userId, activityType, description) => {
+export const addActivity = async (activityType, description) => {
   try {
-    const logId = uuidv4();
-    const docRef = doc(db, "activities", userId, "logs", logId);
-    console.log("Actividad agregada:", docRef.path);
-    await setDoc(docRef, {
-      activityType,
-      description,
-      timestamp: serverTimestamp(),
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://192.168.100.64:5500/api/actividad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        activityType,
+        description,
+      }),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Error al registrar actividad");
+    }
+
+    console.log("✅ Actividad registrada exitosamente");
   } catch (error) {
-    console.error("Error al agregar actividad:", error);
+    console.error("❌ Error al registrar actividad:", error);
   }
 };

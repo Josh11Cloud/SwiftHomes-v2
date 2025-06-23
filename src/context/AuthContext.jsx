@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
       }
       const data = await res.json();
       const { access_token, refresh_token } = data;
+      localStorage.setItem("token", access_token);
       localStorage.setItem("refresh_token", refresh_token);
 
       const profileRes = await fetch(`${API_URL}/profile`, {
@@ -62,6 +63,7 @@ export function AuthProvider({ children }) {
       });
       if (!profileRes.ok) throw new Error("No autorizado");
       const userData = await profileRes.json();
+      console.log("userData:", userData);
       setUser(userData);
       setToken(access_token);
       toast.success("¡Bienvenido!");

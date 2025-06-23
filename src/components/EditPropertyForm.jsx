@@ -54,10 +54,9 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
     roi: "",
     paybackYears: "",
     isInvestment: "",
-    userId: "",
+    userid: "",
     antiguedad: "",
     financiamiento: false,
-    servicios: [],
     remodelar: false,
     precioNegociable: false,
   });
@@ -65,7 +64,7 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
   useEffect(() => {
     if (user && propiedad) {
       const isAdmin = user.role === "admin";
-      const isCreator = propiedad.userId === user.userId;
+      const isCreator = propiedad.userid === user.userid;
       setHasPermission(isAdmin || isCreator);
     } else {
       setHasPermission(false);
@@ -166,32 +165,29 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
   };
 
   const updateProperty = async (id, propertyData, user) => {
-    if (user && user.role !== "admin" && propiedad.userId !== user.userId) {
-      toast.error("No tienes permiso para editar esta propiedad");
-      throw new Error("No tienes permiso para editar esta propiedad");
-    }
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://192.168.100.64:5500/api/propiedades/${id}`,
         {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(propertyData),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Error al actualizar la propiedad:", errorData);
         throw new Error(
           `Error al actualizar la propiedad: ${errorData.message}`
         );
       }
 
-      addActivity(
-        user.userId,
-        "updated_property",
-        "El usuario ha actualizado una propiedad"
-      );
+      addActivity("updated_property", "El usuario ha actualizado una propiedad");
     } catch (error) {
       console.error("Error al actualizar la propiedad:", error);
       throw error;
@@ -205,10 +201,13 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
       toast.error("Usuario no encontrado");
       return;
     }
+    if (!form.nombre || !form.ubicacion || !form.precio) {
+      toast.error("Por favor, complete los campos obligatorios");
+      return;
+    }
     try {
       const updatedForm = {
         ...form,
-        imagen: imagenBase64,
         piscina: services.piscina,
         seguridad: services.seguridad,
       };
@@ -370,9 +369,11 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
               onChange={handleChange}
               className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-1 focus:ring-[#0077B6]"
             >
-              <option value="">Seleccionar</option>
-              <option value="casa">Casa</option>
-              <option value="departamento">Departamento</option>
+              <option value="">Cualquier Tipo de Propiedad</option>
+              <option value="Casa">Casa</option>
+              <option value="Departamento">Departamento</option>
+              <option value="Oficina">Oficina</option>
+              <option value="Terreno">Terreno</option>
             </select>
           </label>
 
@@ -568,9 +569,8 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
               </div>
             ) : (
               <div
-                className={`border-2 border-dashed p-4 text-center rounded-lg cursor-pointer ${
-                  isDragging ? "border-blue-400 bg-blue-100" : "border-gray-300"
-                }`}
+                className={`border-2 border-dashed p-4 text-center rounded-lg cursor-pointer ${isDragging ? "border-blue-400 bg-blue-100" : "border-gray-300"
+                  }`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -629,16 +629,15 @@ function EditProperty({ propiedad, abierto, cerrar, onSave, user }) {
             className="bg-[#0077b6] text-white hover:bg-[#005f87] px-4 py-2 rounded w-full"
             disabled={loading}
           >
-            {loading ? (
-              <div className="flex justify-center">
-                <div className="spinner-border animate-spin inline-block w-4 h-4 border-4 rounded-full text-white"></div>
-              </div>
-            ) : (
-              "Editar Propiedad"
-            )}
+            Editar Propiedad
           </button>
         </form>
       </div>
+      {loading && (
+        <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
+          <Spinner />
+        </div>
+      )}
     </div>
   );
 }

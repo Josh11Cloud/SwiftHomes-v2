@@ -5,6 +5,7 @@ from routes.auth import auth_bp
 from routes.favoritos import favoritos_bp
 from routes.roi import roi_bp
 from routes.usuarios import usuarios_bp
+from routes.actividad import actividades_bp
 import os
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(favoritos_bp)
 app.register_blueprint(roi_bp)
 app.register_blueprint(usuarios_bp)
+app.register_blueprint(actividades_bp)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5500))
