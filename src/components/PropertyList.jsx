@@ -220,7 +220,7 @@ export default function PropertyList({ property, showROI }) {
             <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
               {showROI && (
                 <p className="font-semibold">
-                  ROI: <ROIWithTooltip value={property.roi} />
+                  ROI: {property.roi === null || property.roi === undefined || isNaN(property.roi) ? "No disponible" : <ROIWithTooltip value={property.roi} />}
                 </p>
               )}
               {showROI && (

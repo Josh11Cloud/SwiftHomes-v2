@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
-  const { login, loginLoading } = useAuth();
+  const { login, loginLoading, user: authUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,9 +29,9 @@ export default function Login() {
 
     if (!validateForm()) return;
 
-    const success = await login(email, password);
-    if (success) {
-      toast.success("¡Bienvenido de nuevo!");
+    const user = await login(email, password);
+    if (user) {
+      toast.success(`¡Bienvenido de nuevo, ${user?.nombre}!`);
       router.push("/", undefined, { shallow: true });
     } else {
       setError("Credenciales incorrectas");

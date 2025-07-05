@@ -18,8 +18,8 @@ import { addActivity } from "./AddActivity";
 import LogoutConfirmationModal from "./LogOutConfirmationModal";
 
 function MyAccount() {
-  const { user, logout } = useAuth();
-  const navigate = useRouter();
+  const { user, token, logout } = useAuth();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -28,14 +28,14 @@ function MyAccount() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const handleLogout = async () => {
     try {
-      const currentUserId = user.userId;
       setIsLogoutModalOpen(false);
+      await addActivity(token, "logout", "El usuario cerró sesión".substring(0, 100));
       await logout();
       toast.success("Sesión cerrada correctamente");
-      addActivity(currentUserId, "logout", "El usuario ha cerrado sesión");
-      navigate("/");
     } catch (error) {
       toast.error("Error al cerrar sesión:", error);
+    } finally {
+      router.push("/");
     }
   };
   if (!user) {
@@ -128,9 +128,9 @@ function MyAccount() {
           className="bg-slate-50 rounded-2xl shadow-lg p-8 border border-slate-200 space-y-6"
         >
           {/* Foto */}
-          {user.photoURL ? (
+          {user.imagen ? (
             <img
-              src={user.photoURL}
+              src={user.imagen}
               alt="Foto de perfil"
               className="w-20 h-20 rounded-full object-cover border border-slate-300 shadow"
             />
@@ -138,15 +138,15 @@ function MyAccount() {
             <UserCircle size={40} className="text-slate-400" />
           )}
 
-          {/* Email + userId */}
+          {/* Email + userid */}
           <div>
             <p className="text-sm text-slate-500">Correo electrónico</p>
             <p className="text-lg font-medium text-[#212529]">{user.email}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500">ID de usuario</p>
+            <p className="text-sm font-semibold text-gray-700">ID de usuario</p>
             <p className="text-xs font-mono text-[#6c757d] break-all">
-              {user.userId}
+              {user.userid}
             </p>
           </div>
 
@@ -189,7 +189,7 @@ function MyAccount() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="bg-white rounded-xl shadow-lg w-full max-w-md p-4"
+                  className="bg-slate-100 rounded-xl shadow-lg w-full max-w-md p-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <h2 className="text-lg font-bold mb-2">Cambiar contraseña</h2>
@@ -218,7 +218,7 @@ function MyAccount() {
                   <div className="flex justify-end gap-2">
                     <Button
                       onClick={() => setShowModal(false)}
-                      className="bg-slate-100 hover:bg-slate-200 font-medium py-2 px-4 rounded-xl transition"
+                      className="text-[#1d1d1d] bg-slate-300 hover:bg-gray-400 font-medium py-2 px-4 rounded-xl transition"
                     >
                       Cancelar
                     </Button>
@@ -234,7 +234,7 @@ function MyAccount() {
               </div>
             )}
             <Link
-              href="/mis-propiedades"
+              href="/mispropiedades"
               className="w-full flex items-center gap-2 justify-center bg-slate-100 hover:bg-slate-200 font-medium py-2 rounded-xl transition"
             >
               <HouseIcon className="w-5 h-5 text-[#0077b6]" />
@@ -259,7 +259,7 @@ function MyAccount() {
             <LogoutConfirmationModal
               isOpen={isLogoutModalOpen}
               onClose={() => setIsLogoutModalOpen(false)}
-              onConfirm={handleLogout}
+              onConfirm={handleLogoutConfirmation}
             />
           </div>
         </motion.div>

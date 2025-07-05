@@ -1,15 +1,17 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { addActivity } from "./AddActivity";
 
 function EditProfileModal({ isOpen, onClose }) {
+  const { user, token, refreshUser } = useAuth();
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [nombre, setNombre] = useState(user?.nombre || "");
   const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
-  const { token, refreshUser } = useAuth();
-  const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
+  const [photoURL, setPhotoURL] = useState(user?.imagen || "");
 
   const handleSave = async () => {
     setLoading(true);
@@ -31,7 +33,6 @@ function EditProfileModal({ isOpen, onClose }) {
         return;
       }
 
-      // Registro en dashboard
       await addActivity(user.userid, "update_profile", "El usuario actualizó su perfil");
 
       await refreshUser();
@@ -45,10 +46,7 @@ function EditProfileModal({ isOpen, onClose }) {
   };
 
   useEffect(() => {
-    if (user) {
-      setDisplayName(user.displayName || "");
-      setPhotoURL(user.photoURL || "");
-    }
+    setPhotoURL(user?.imagen || "");
   }, [user]);
 
   return (
@@ -109,7 +107,7 @@ function EditProfileModal({ isOpen, onClose }) {
                     <img
                       src={photoURL}
                       alt="Vista previa"
-                      className="w-24 h-24 rounded-full object-cover border"
+                      className="w-20 h-20 rounded-full object-cover border"
                     />
                   </div>
                 )}
@@ -128,7 +126,7 @@ function EditProfileModal({ isOpen, onClose }) {
                 </div>
 
                 <div>
-                  <label className="text-sm text-red-500 font-semibold">
+                  <label className="text-sm text-gray-800 font-semibold">
                     Contraseña Actual *
                   </label>
                   <input
@@ -144,7 +142,7 @@ function EditProfileModal({ isOpen, onClose }) {
                 <div className="flex justify-center gap-2 mt-4">
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 bg-gray-100 rounded-xl text-sm"
+                    className="px-4 py-2 bg-slate-200 text-gray-800 rounded-xl text-sm"
                   >
                     Cancelar
                   </button>

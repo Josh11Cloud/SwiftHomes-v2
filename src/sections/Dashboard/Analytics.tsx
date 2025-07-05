@@ -1,72 +1,61 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
-import db from "../../firebase/config";
 import { Eye } from "lucide-react";
 
-const getVisitasMensuales = async (userId: string) => {
-  console.log("Obteniendo datos de visitas mensuales...");
-  const propiedadesQuery = query(
-    collection(db, "propiedades"),
-    where("userId", "==", userId)
-  );
+export const getVisitasMensuales = async () => {
+  try {
+    const res = await fetch(
+      `http://192.168.100.64:5500/api/propiedades/visitas`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
 
-  const snapshot = await getDocs(propiedadesQuery);
-  console.log("Documentos obtenidos:", snapshot.docs.length);
+    const visitas = await res.json();
 
-  const visitasPorMes: Record<string, number> = {};
+    const chartData =
+      visitas && Array.isArray(visitas)
+        ? visitas.map((item: any) => ({
+            mes: item.mes,
+            visitas: item.visitas,
+          }))
+        : [];
 
-  snapshot.forEach((doc) => {
-    const visitas = doc.data().visitas;
-    if (visitas && visitas.cantidad && visitas.fecha) {
-      const mes = new Date(visitas.fecha.toDate()).toLocaleString("default", {
-        month: "short",
-      });
-      visitasPorMes[mes] = (visitasPorMes[mes] || 0) + visitas.cantidad;
-    }
-  });
+    const sortedChartData = chartData.sort(
+      (a, b) =>
+        new Date(`1 ${a.mes} 2025`).getTime() -
+        new Date(`1 ${b.mes} 2025`).getTime()
+    );
 
-  const chartData = Object.entries(visitasPorMes).map(([mes, visitas]) => ({
-    mes,
-    visitas,
-  }));
+    const actividadCards = sortedChartData.map((item) => ({
+      label: item.mes,
+      valor: item.visitas,
+      icon: <Eye className="text-[#0077b6]" size={20} />,
+    }));
 
-  const sortedChartData = chartData.sort(
-    (a, b) =>
-      new Date(`1 ${a.mes} 2025`).getTime() -
-      new Date(`1 ${b.mes} 2025`).getTime()
-  );
-
-  const actividadCards = sortedChartData.map((item) => ({
-    label: item.mes,
-    valor: item.visitas,
-    icon: <Eye className="text-[#0077b6]" size={20} />,
-  }));
-
-  return { chartData: sortedChartData, actividadCards };
+    return { chartData: sortedChartData, actividadCards };
+  } catch (error) {
+    console.error("Error al obtener visitas mensuales desde Flask:", error);
+    return { chartData: [], actividadCards: [] };
+  }
 };
 
-const getEstadoPropiedades = async (userId: string) => {
-  const propiedadesQuery = query(
-    collection(db, "propiedades"),
-    where("userId", "==", userId)
-  );
-  const snapshot = await getDocs(propiedadesQuery);
-
-  const estados = {
-    publicada: 0,
-    pendiente: 0,
-    archivada: 0,
-    vendida: 0,
-  };
-
-  snapshot.forEach((doc) => {
-    const estado = doc.data().status;
-    if (estado && estados[estado] !== undefined) {
-      estados[estado]++;
-    }
-  });
-
-  return estados;
+export const getEstadoPropiedades = async () => {
+  try {
+    const res = await fetch(
+      `http://192.168.100.64:5500/api/propiedades/estados`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error al obtener estados desde Flask:", error);
+    return {};
+  }
 };
 
 export default getVisitasMensuales;
-export { getEstadoPropiedades };

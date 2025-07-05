@@ -7,6 +7,7 @@ function ActivityHistory() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllActivities, setShowAllActivities] = useState(false);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -50,7 +51,7 @@ function ActivityHistory() {
     <div className="space-y-4 text-center mb-5">
       <h3 className="text-2xl font-bold text-[#0077b6]">Historial de Actividad</h3>
       {activities.length > 0 ? (
-        activities.map((activity, index) => (
+        activities.slice(0, showAllActivities ? activities.length : 3).map((activity, index) => (
           <div
             key={index}
             className="bg-slate-50 rounded-xl shadow-lg p-4 mb-4"
@@ -68,6 +69,14 @@ function ActivityHistory() {
         <p className="text-sm text-slate-500 text-center">
           No se han registrado actividades recientes.
         </p>
+      )}
+      {activities.length > 3 && (
+        <button
+          className="text-[#0077b6] hover:text-[#005f87] hover:scale-105"
+          onClick={() => setShowAllActivities(!showAllActivities)}
+        >
+          {showAllActivities ? "Ver menos" : "Ver más"}
+        </button>
       )}
     </div>
   );

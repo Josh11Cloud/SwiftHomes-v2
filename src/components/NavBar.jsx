@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { UserCircle, UserRoundPlus } from 'lucide-react';
+import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { addActivity } from './AddActivity.jsx';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -10,7 +12,7 @@ import {
 } from "./ui/dropdown-menu.tsx";
 
 function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const router = useRouter();
   const handleFavoritesClick = () => {
     router.push('/favoritos');
@@ -69,8 +71,10 @@ function Navbar() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
+                  await addActivity(token, "logout", "El usuario cerró sesión".substring(0, 100));
                   await logout();
                   router.push("/");
+                  toast.success("Sesión cerrada correctamente");
                 }} className='hover:bg-[#0077b6] hover:text-slate-50'
               >
                 Cerrar sesión

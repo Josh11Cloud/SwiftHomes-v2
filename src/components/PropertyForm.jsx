@@ -653,8 +653,8 @@ export default function PropertyForm() {
                       <button
                         type="button"
                         onClick={() => {
-                          setImagenesBase64(imagenesBase64.filter((img, i) => i !== index));
-                          setImagenes(imagenes.filter((img, i) => i !== index));
+                          setImagenesBase64(prevImagenes => prevImagenes.filter((img, i) => i !== index));
+                          setImagenes(prevImagenes => prevImagenes.filter((img, i) => i !== index));
                         }}
                         className="flex justify-center absolute inset-0 bg-red-600 text-white rounded-full p-2 w-8 h-8 hover:scale-105 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       >

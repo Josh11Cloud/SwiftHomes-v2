@@ -1,7 +1,5 @@
-export const addActivity = async (activityType, description) => {
+export const addActivity = async (token, activityType, description) => {
   try {
-    const token = localStorage.getItem("token");
-
     const response = await fetch("http://192.168.100.64:5500/api/actividad", {
       method: "POST",
       headers: {
@@ -10,7 +8,7 @@ export const addActivity = async (activityType, description) => {
       },
       body: JSON.stringify({
         activityType,
-        description,
+        description: description.substring(0, 100),
       }),
     });
 

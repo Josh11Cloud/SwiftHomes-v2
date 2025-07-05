@@ -9,13 +9,17 @@ export default function PrivateRoute({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      toast.error("Debes iniciar sesión para acceder a esta página");
-      router.replace("/login");
-    }
-    if (error) {
-      toast.error(error);
-    }
+    const timeoutId = setTimeout(() => {
+      if (!loading && !isAuthenticated) {
+        toast.error("Debes iniciar sesión para acceder a esta página");
+        router.replace("/login");
+      }
+      if (error) {
+        toast.error(error);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [loading, isAuthenticated, error, router]);
 
   if (loading) {

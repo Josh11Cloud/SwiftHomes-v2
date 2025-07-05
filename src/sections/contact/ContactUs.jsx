@@ -33,7 +33,7 @@ export default function ContactSection() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/contacto", {
+      const response = await fetch("http://192.168.100.64:5500/api/contacto", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,9 +160,8 @@ export default function ContactSection() {
           ></textarea>
           <button
             type="submit"
-            className={`w-full py-2 px-4 rounded-md text-white font-semibold ${
-              isSubmitting ? "bg-gray-400" : "bg-[#0077b6] hover:bg-[#005f87]"
-            }`}
+            className={`w-full py-2 px-4 rounded-md text-white font-semibold ${isSubmitting ? "bg-gray-400" : "bg-[#0077b6] hover:bg-[#005f87]"
+              }`}
           >
             {isSubmitting ? "Enviando..." : "Enviar Mensaje"}
           </button>

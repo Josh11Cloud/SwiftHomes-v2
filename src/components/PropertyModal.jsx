@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import ROIWithTooltip from "../sections/invest/ROITootlip";
 import { useState, useEffect } from "react";
 import SimpleBot from './SimpleBot';
+import TablaYGraficaPlusvalia from "./GraphicAndTable";
+import { GraphicHistorico } from './GraphicPlusvaliaHistorico';
 import {
   MapPin,
   CircleParking,
@@ -36,10 +38,29 @@ export default function PropertyModal({
   if (!propiedad) return null;
 
   const { favorites, toggleFavorite } = useFavorites();
-
+  const [preciosM2, setPreciosM2] = useState([]);
+  const [plusvalia, setPlusvalia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
   const imagenes = propiedad && propiedad.imagenes ? Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [] : [];
+
+  const extraerZonaDeUbicacion = (ubicacion) => {
+    const zonas = [
+      "Valle Imperial",
+      "Ladrón de Guevara",
+      "Jardines del Valle",
+      "La Cima",
+      "Las Cañadas",
+      "Providencia",
+    ];
+
+    const normalizar = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+    const ubicacionNormalizada = normalizar(ubicacion);
+
+    const zonaEncontrada = zonas.find(zona => ubicacionNormalizada.includes(normalizar(zona)));
+
+    return zonaEncontrada || "";
+  };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
@@ -52,8 +73,8 @@ export default function PropertyModal({
   const rentabilidadAnual = propiedad.precio > 0 ? (propiedad.ingresos_mensuales * 12) / propiedad.precio * 100 : 0;
 
   const getRentabilidadColor = (rentabilidad) => {
-    if (rentabilidad > 7) return 'text-green-600';
-    if (rentabilidad > 4) return 'text-yellow-600';
+    if (rentabilidad >= 6) return 'text-green-600';
+    if (rentabilidad >= 4) return 'text-yellow-600';
     return 'text-red-600';
   };
 
@@ -62,7 +83,6 @@ export default function PropertyModal({
   const [usuario, setUsuario] = useState({});
 
   useEffect(() => {
-    console.log('propiedad.userid:', propiedad.userid);
     const obtenerUsuario = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:5500/api/usuarios/${propiedad.userid}`);
@@ -78,8 +98,16 @@ export default function PropertyModal({
     obtenerUsuario();
   }, [propiedad.userid]);
 
-  console.log(Object.keys(propiedad))
-  console.log(propiedad);
+  useEffect(() => {
+    if (propiedad?.id) {
+      fetch(`http://127.0.0.1:5500/api/plusvalia/${propiedad.id}`)
+        .then(res => res.json())
+        .then(data => setPlusvalia(data))
+        .catch(err => console.error("Error obteniendo plusvalía", err));
+    }
+  }, [propiedad]);
+
+  console.log("ubicacion:", propiedad.ubicacion);
 
   return (
     <AnimatePresence>
@@ -291,6 +319,12 @@ export default function PropertyModal({
                       })()}
                     </span>
                   )}
+                  <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
+                    <TablaYGraficaPlusvalia propiedadId={propiedad.id} />
+                  </div>
+                  <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4 text-center text-gray-800">
+                    <GraphicHistorico zona={extraerZonaDeUbicacion(propiedad.ubicacion)} />
+                  </div>
                 </div>
               )}
               <h3 className="text-lg text-gray-800 font-bold mt-5 text-start">Publicado por</h3>

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from db import get_connection
 import json
-from functools import wraps
+from collections import defaultdict
 import os
 from dotenv import load_dotenv
 from datetime import datetime
@@ -73,8 +73,8 @@ def obtener_propiedades(user_id=None):
                 params.append(filtros['max_price'])
 
             if filtros['ubicacion']:
-                conditions.append("LOWER(p.ubicacion) LIKE %s")
-                params.append(f"%{filtros['ubicacion'].lower()}%")
+                conditions.append("p.ubicacion ILIKE %s")
+                params.append(f"%{filtros['ubicacion']}%")
 
             if filtros['property_type']:
                 conditions.append("LOWER(p.tipo) = %s")
@@ -157,7 +157,7 @@ def obtener_propiedades(user_id=None):
             "total": total,
             "page": page,
             "limit": limit
-        }), 200
+        }), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     except ValueError as e:
         return error_response(f"Error de validación: {str(e)}", 400)
@@ -261,7 +261,8 @@ def obtener_propiedad_por_id(propiedad_id):
         cur.close()
         conn.close()
 
-        return jsonify(propiedad_dict), 200
+        return jsonify(propiedad_dict), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
 
     except ValueError as e:
         return error_response(f"Error de validación: {str(e)}", 400)
@@ -311,7 +312,7 @@ def editar_propiedad(user_id, propiedad_id):
         cur.close()
         conn.close()
 
-        return jsonify({"mensaje": "Propiedad actualizada correctamente"}), 200
+        return jsonify({"mensaje": "Propiedad actualizada correctamente"}), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     except ValueError as e:
         return error_response(f"Error de validación: {str(e)}", 400)
@@ -336,7 +337,7 @@ def obtener_mis_propiedades(user_id):
 
         cur.close()
         conn.close()
-        return jsonify(propiedades), 200
+        return jsonify(propiedades), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     except Exception as e:
         print("Error al obtener propiedades:", e)
@@ -360,7 +361,85 @@ def eliminar_propiedad(user_id, id):
 
         cur.close()
         conn.close()
-        return jsonify({"mensaje": "Propiedad eliminada"}), 200
+        return jsonify({"mensaje": "Propiedad eliminada"}), 200, {'Content-Type': 'application/json; charset=utf-8'}
     except Exception as e:
         print("Error al eliminar propiedad:", e)
         return error_response("Error al eliminar propiedad", 500)
+@propiedades_bp.route('/api/propiedades/estados', methods=['GET'])
+@token_required
+def obtener_estados_propiedades(user_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT status, COUNT(*) 
+            FROM propiedades 
+            WHERE userid = %s 
+            GROUP BY status
+        """, (str(user_id),))
+        rows = cur.fetchall()
+        resumen = {estado: cantidad for estado, cantidad in rows}
+        return jsonify(resumen)
+    except Exception as e:
+        print(f"Error en obtener_estados_propiedades: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+@propiedades_bp.route('/api/propiedades/visitas', methods=['GET'])
+@token_required
+def obtener_visitas_mensuales(user_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT visitas FROM propiedades WHERE userid = %s", (str(user_id),))
+        visitas_raw = cur.fetchall()
+
+        visitas_por_mes = defaultdict(int)
+        for (visitas,) in visitas_raw:
+            if visitas and 'fecha' in visitas and 'cantidad' in visitas:
+                fecha = datetime.fromisoformat(visitas['fecha'])
+                mes = fecha.strftime('%b')
+                visitas_por_mes[mes] += visitas['cantidad']
+
+        datos = [{"mes": mes, "visitas": cantidad} for mes, cantidad in visitas_por_mes.items()]
+        return jsonify(datos), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    except Exception as e:
+        print(f"Error en obtener_visitas_propiedades: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+@propiedades_bp.route('/api/propiedades/usuario', methods=['GET'])
+@token_required
+def obtener_propiedades_usuario(user_id_from_token):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT * FROM propiedades WHERE userid = %s
+        """, (str(user_id_from_token),))
+        rows = cur.fetchall()
+        keys = [desc[0] for desc in cur.description]
+        propiedades = []
+
+        for row in rows:
+            prop_dict = dict(zip(keys, row))
+            precio = prop_dict.get("precio")
+            ingresos_mensuales = prop_dict.get("ingresos_mensuales")
+            gastos_anuales = prop_dict.get("gastos_anuales")
+
+            if precio is not None and ingresos_mensuales is not None:
+                ingreso_anual = ingresos_mensuales * 12
+                utilidad_anual = ingreso_anual - (gastos_anuales or 0)
+
+                if utilidad_anual > 0:
+                    roi = round((utilidad_anual / precio) * 100, 2)
+                    payback_years = round(precio / utilidad_anual, 2)
+                else:
+                    roi = 0
+                    payback_years = None
+
+                prop_dict["roi"] = roi
+                prop_dict["plazo_ret"] = payback_years
+
+            propiedades.append(prop_dict)
+
+        return jsonify(propiedades), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    except Exception as e:
+        print(f"Error en obtener_propiedades_usuario: {str(e)}")
+        return jsonify({'error': str(e)}), 500

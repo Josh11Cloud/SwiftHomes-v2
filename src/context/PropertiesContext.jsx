@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from "react";
 import { useAuth } from './AuthContext';
 
 const PropertiesContext = createContext();
-const API_URL = "http://localhost:5500/api/propiedades";
+const API_URL = "http://192.168.100.64:5500/api/propiedades";
 
 const PropertiesProvider = ({ children }) => {
   const [properties, setProperties] = useState([]);

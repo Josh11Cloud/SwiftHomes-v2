@@ -63,11 +63,10 @@ export function AuthProvider({ children }) {
       });
       if (!profileRes.ok) throw new Error("No autorizado");
       const userData = await profileRes.json();
-      console.log("userData:", userData);
       setUser(userData);
       setToken(access_token);
       toast.success("¡Bienvenido!");
-      return true;
+      return userData;
     } catch (error) {
       toast.error(error.message);
       return false;
@@ -107,8 +106,12 @@ export function AuthProvider({ children }) {
     }
   }, [login]);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (callback) => {
     try {
+      if (callback) {
+        await callback();
+      }
+
       const refreshToken = localStorage.getItem("refresh_token");
 
       if (refreshToken) {

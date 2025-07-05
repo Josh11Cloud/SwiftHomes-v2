@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Spinner from "../../components/Spinner.jsx";
 import { toast } from "sonner";
 import PropertiesPerPage from "../../components/PropertiesPerPage";
+import { MessageSquareWarning } from "lucide-react";
 
 function Invest() {
   const [loading, setLoading] = useState(true);
@@ -22,9 +23,9 @@ function Invest() {
 
             return {
               ...prop,
-              roi: roiData.roi_anual,
-              ingresoAnual: roiData.ingreso_anual,
-              utilidadAnual: roiData.utilidad_anual,
+              roi: roiData.roi,
+              ingresoAnual: roiData.ingreso_mensual * 12,
+              utilidadAnual: roiData.ingreso_mensual * 12 - prop.gastos_anuales,
               plazoDelRetorno: roiData.payback_years,
             };
           } catch (e) {
@@ -94,7 +95,7 @@ function Invest() {
 
       {descartadas.length > 0 && (
         <div className="text-sm text-yellow-600 text-center mb-4">
-          ⚠️ {descartadas.length} propiedades marcadas para inversión fueron omitidas por falta de datos.
+          <MessageSquareWarning /> {descartadas.length} propiedades marcadas para inversión fueron omitidas por falta de datos.
         </div>
       )}
 

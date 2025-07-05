@@ -5,6 +5,7 @@ import db from "../../firebase/config";
 import { CSVLink } from "react-csv";
 import { motion } from "framer-motion";
 import { doc, deleteDoc, updateDoc } from "firebase/firestore";
+import SummaryCard from "../Dashboard/Summarycard";
 import toast from "react-hot-toast";
 import {
   Calendar,
@@ -17,6 +18,13 @@ import {
   Mail,
   MessageCircleMore,
   Trash2Icon,
+  Home,
+  Upload,
+  Database,
+  AlertOctagon,
+  Heart,
+  HandCoins,
+  Percent,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -213,9 +221,8 @@ export default function AdminDashboard() {
               {filteredLeads.length === 0 ? (
                 <tr
                   key={leads.id}
-                  className={`border-b transition md:text-lg ${
-                    leads.archivado ? "bg-[#0077b6] text-slate-50 italic" : ""
-                  }`}
+                  className={`border-b transition md:text-lg ${leads.archivado ? "bg-[#0077b6] text-slate-50 italic" : ""
+                    }`}
                 >
                   <td colSpan="5" className="text-center p-6">
                     No se encontraron leads.
@@ -225,9 +232,8 @@ export default function AdminDashboard() {
                 filteredLeads.map((lead, i) => (
                   <tr
                     key={lead.id}
-                    className={`border-b transition md:text-lg ${
-                      i % 2 === 0 ? "bg-slate-200" : "bg-slate-100"
-                    }`}
+                    className={`border-b transition md:text-lg ${i % 2 === 0 ? "bg-slate-200" : "bg-slate-100"
+                      }`}
                   >
                     <td className="p-4 text-left capitalize">
                       {lead.tipoConsulta
@@ -239,7 +245,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="p-4 text-left">
                       {lead.email &&
-                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)
+                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)
                         ? lead.email
                         : "Correo electrónico no válido"}{" "}
                     </td>
@@ -251,9 +257,8 @@ export default function AdminDashboard() {
                     </td>
                     <td className="p-4 text-left">
                       <span
-                        className={`ml-2 px-2 py-1 text-md text-center rounded-full ${
-                          statusStyles[lead.estado]
-                        }`}
+                        className={`ml-2 px-2 py-1 text-md text-center rounded-full ${statusStyles[lead.estado]
+                          }`}
                       >
                         {lead.estado}
                       </span>
@@ -264,9 +269,8 @@ export default function AdminDashboard() {
                             lead.estado === "Nuevo" ? "Completado" : "Nuevo"
                           )
                         }
-                        className={`text-sm hover:scale-105 px-3 py-1 rounded-md ml-2 ${
-                          buttonStyles[lead.estado]
-                        }`}
+                        className={`text-sm hover:scale-105 px-3 py-1 rounded-md ml-2 ${buttonStyles[lead.estado]
+                          }`}
                       >
                         Marcar como
                         {lead.estado === "Nuevo" ? " Completado" : " Nuevo"}
@@ -288,9 +292,8 @@ export default function AdminDashboard() {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => toggleArchivado(lead.id, lead.archivado)}
                         title={lead.archivado ? "Restaurar" : "Archivar"}
-                        className={`text-sm ${
-                          lead.archivado ? "bg-[#0077b6]" : "bg-gray-400"
-                        } hover:scale-105 px-3 py-1 rounded-md`}
+                        className={`text-sm ${lead.archivado ? "bg-[#0077b6]" : "bg-gray-400"
+                          } hover:scale-105 px-3 py-1 rounded-md`}
                       >
                         <Folder className="text-slate-50" size={30} />
                       </motion.button>
@@ -381,6 +384,58 @@ export default function AdminDashboard() {
               <p className="text-2xl font-bold text-green-600">{Completados}</p>
             </div>
           </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
+          <h4 className="text-[#0077b6] font-semibold text-2xl text-center m-auto flex items-center">
+            <Database className="mr-2" size={20} />
+            Más Datos
+          </h4>
+          <SummaryCard
+            title="Propiedades totales"
+            value={properties?.length || 0}
+            icon={<Home />}
+            color="border-[#0077b6]"
+          />
+          <SummaryCard
+            title="Publicadas"
+            value={estados.publicada || 0}
+            icon={<Upload />}
+            color="border-[#0077b6]"
+          />
+          <SummaryCard
+            title="Pendientes"
+            value={estados.pendiente || 0}
+            icon={<AlertOctagon />}
+            color="border-[#0077b6]"
+          />
+          <SummaryCard
+            title="Archivadas"
+            value={estados.archivada || 0}
+            icon={<Folder />}
+            color="border-[#0077b6]"
+          />
+          <SummaryCard
+            title="Vendidas"
+            value={estados.vendida || 0}
+            icon={<HandCoins />}
+            color="border-[#0077b6]"
+          />
+          <SummaryCard
+            title="Favoritos"
+            value={favorites.length}
+            icon={<Heart />}
+            color="border-red-600"
+          />
+          {!isNaN(avgROI) && avgROI !== null && avgROI !== undefined ? (
+            <SummaryCard
+              title="ROI Promedio (%)"
+              value={`${avgROI}%`}
+              icon={<Percent />}
+              color="border-green-600"
+            />
+          ) : (
+            <p>No hay propiedades con ROI</p>
+          )}
         </div>
       </section>
     </>

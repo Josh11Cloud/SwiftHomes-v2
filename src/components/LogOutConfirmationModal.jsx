@@ -12,7 +12,7 @@ function LogoutConfirmationModal({ isOpen, onClose, onConfirm }) {
             </Dialog.Title>
             <p className="text-sm text-slate-500 mb-4">¿Estás seguro de que deseas cerrar sesión? Esto te desconectará de tu cuenta.</p>
             <div className="flex justify-center gap-2">
-              <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-xl text-sm">Cancelar</button>
+              <button onClick={onClose} className="px-4 py-2 bg-slate-200 rounded-xl text-sm">Cancelar</button>
               <button onClick={onConfirm} className="px-4 py-2 bg-[#0077b6] text-slate-50 rounded-xl text-sm hover:bg-[#005f87]">
                 Confirmar
               </button>
