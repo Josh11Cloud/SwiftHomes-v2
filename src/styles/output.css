@@ -1624,6 +1624,42 @@ video {
   color: rgb(31 41 55 / var(--tw-text-opacity, 1));
 }
 
+.text-teal-600 {
+  --tw-text-opacity: 1;
+  color: rgb(0 134 125 / var(--tw-text-opacity, 1));
+}
+
+.text-teal-500 {
+  --tw-text-opacity: 1;
+  color: rgb(20 184 166 / var(--tw-text-opacity, 1));
+}
+
+.text-sky-500 {
+  --tw-text-opacity: 1;
+  color: rgb(14 165 233 / var(--tw-text-opacity, 1));
+}
+
+.text-sky-600 {
+  --tw-text-opacity: 1;
+  color: rgb(2 132 199 / var(--tw-text-opacity, 1));
+}
+
+.checkbox {
+  accent-color: #0077b6;
+}
+
+.checkbox.accent-sky-500 {
+  accent-color: #0ea5e9;
+}
+
+.checkbox.accent-teal-500 {
+  accent-color: #14b8a6;
+}
+
+input[type="checkbox"] {
+  accent-color: #0077b6;
+}
+
 .hover\:bg-\[\#005f8c\]:hover {
     --tw-bg-opacity: 1;
     background-color: rgb(0 95 140 / var(--tw-bg-opacity, 1)) /* #005f8c */;

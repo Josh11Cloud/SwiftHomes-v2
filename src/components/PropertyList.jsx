@@ -26,9 +26,9 @@ export default function PropertyList({ property, showROI }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { favorites, toggleFavorite } = useFavorites();
   const [loading, setLoading] = useState(true);
-  const isFavorite = property && favorites && favorites.includes(String(property.id));
   const [currentImage, setCurrentImage] = useState(0);
   const totalImages = property.imagenes.length;
+  const [localIsFavorite, setLocalIsFavorite] = useState(property && favorites && favorites.includes(String(property.id)));
 
   const imagenes = property && property.imagenes ? Array.isArray(property.imagenes) ? property.imagenes : [] : [];
 
@@ -56,8 +56,8 @@ export default function PropertyList({ property, showROI }) {
   const rentabilidadAnual = property.precio > 0 ? (property.ingresos_mensuales * 12) / property.precio * 100 : 0;
 
   const getRentabilidadColor = (rentabilidad) => {
-    if (rentabilidad > 7) return 'text-green-600';
-    if (rentabilidad > 4) return 'text-yellow-600';
+    if (rentabilidad >= 7) return 'text-green-600';
+    if (rentabilidad >= 4) return 'text-yellow-600';
     return 'text-red-600';
   };
 
@@ -127,15 +127,17 @@ export default function PropertyList({ property, showROI }) {
         </div>
         {property && (
           <motion.button
+            style={{ zIndex: 25 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="absolute top-3 right-5 p-2 rounded-full bg-slate-200 hover:scale-105"
+            className="absolute top-3 right-5 p-2 rounded-full bg-slate-200 hover:scale-105 text-gray-800"
             onClick={(e) => {
               e.stopPropagation();
               toggleFavorite(property.id);
+              setLocalIsFavorite(!localIsFavorite);
             }}
           >
-            {isFavorite ? (
+            {localIsFavorite ? (
               <Heart
                 size={25}
                 fill="#0077b6"
@@ -152,10 +154,14 @@ export default function PropertyList({ property, showROI }) {
           </motion.button>
         )}
         <div className="relative w-full h-auto mb-4 flex justify-between">
-          <img
+          <motion.img
+            key={currentImage}
             src={imagenes[currentImage]}
             alt={`${property.nombre} - Imagen ${currentImage + 1}`}
             className="rounded-xl w-full aspect-[4/3] object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           />
           <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch">
             {/* Botón anterior */}

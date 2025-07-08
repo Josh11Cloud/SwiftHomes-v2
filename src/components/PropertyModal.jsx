@@ -38,7 +38,6 @@ export default function PropertyModal({
   if (!propiedad) return null;
 
   const { favorites, toggleFavorite } = useFavorites();
-  const [preciosM2, setPreciosM2] = useState([]);
   const [plusvalia, setPlusvalia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const imagenes = propiedad && propiedad.imagenes ? Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [] : [];
@@ -73,7 +72,7 @@ export default function PropertyModal({
   const rentabilidadAnual = propiedad.precio > 0 ? (propiedad.ingresos_mensuales * 12) / propiedad.precio * 100 : 0;
 
   const getRentabilidadColor = (rentabilidad) => {
-    if (rentabilidad >= 6) return 'text-green-600';
+    if (rentabilidad >= 7) return 'text-green-600';
     if (rentabilidad >= 4) return 'text-yellow-600';
     return 'text-red-600';
   };
@@ -106,8 +105,6 @@ export default function PropertyModal({
         .catch(err => console.error("Error obteniendo plusvalía", err));
     }
   }, [propiedad]);
-
-  console.log("ubicacion:", propiedad.ubicacion);
 
   return (
     <AnimatePresence>
@@ -166,10 +163,14 @@ export default function PropertyModal({
             </h2>
 
             <div className="relative w-full h-auto mb-4 flex justify-between">
-              <img
+              <motion.img
+                key={currentIndex}
                 src={imagenes[currentIndex]}
                 alt={`${propiedad.nombre} - Imagen ${currentIndex + 1}`}
                 className="rounded-xl w-full aspect-[4/3] object-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
               />
 
               <div className="flex flex-col md:flex-row gap-3 justify-center items-stretch">
@@ -334,14 +335,16 @@ export default function PropertyModal({
                   <div className="flex items-center gap-1">
                     <p className="font-semibold text-gray-700">{usuario.nombre}</p>
                     {usuario.verificado && (
-                      <BadgeCheck size={16} fill="#0077b6" className="text-slate-100" />)}
+                      <span title="Usuario Verificado">
+                        <BadgeCheck size={16} fill="#0077b6" className="text-slate-100" />
+                      </span>)}
                     {usuario.calificacion && (
                       <div title="Calificación en base a reseñas" className="flex items-center gap-1 text-gray-700 hover:scale-105">
                         {Array.from({ length: 5 }, (_, i) => (
                           <Star
                             key={i}
                             size={16}
-                            fill={i < Math.floor(usuario.calificacion) ? "#ffd700" : "#ccc"}
+                            fill={i < Math.floor(usuario.calificacion) ? "#0077b6" : "#ccc"}
                           />
                         ))}
                       </div>

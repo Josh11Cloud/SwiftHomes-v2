@@ -75,6 +75,20 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("No autorizado");
+      const data = await res.json();
+      setUser(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [token, API_URL]);
+
   const register = useCallback(async (nombre, email, password, imagen) => {
     try {
       const res = await fetch(`${API_URL}/register`, {
@@ -137,7 +151,7 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, loginLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, loginLoading, login, logout, register, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

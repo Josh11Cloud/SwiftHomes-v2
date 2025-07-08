@@ -8,35 +8,24 @@ zonas_bp = Blueprint("zonas", __name__)
 def get_historico_precios():
     conn, cur = None, None
     try:
-        zona_param = request.args.get("zona")
-        if zona_param:
-            zona_param = unidecode(zona_param).lower()
+        zona_param_raw = request.args.get("zona", "")
+        zona_param = unidecode(zona_param_raw).lower()
 
         conn = get_connection()
         cur = conn.cursor()
 
-        if zona_param:
-            cur.execute("""
-                SELECT zona, AVG(precio_m2) as precio_m2, MAX(fuente) as fuente, TO_CHAR(fecha, 'YYYY-MM-DD') as fecha
-                FROM historico_precios
-                GROUP BY zona, fecha
-                ORDER BY fecha
-            """)
-        else:
-            cur.execute("""
-                SELECT zona, AVG(precio_m2) as precio_m2, MAX(fuente) as fuente, TO_CHAR(fecha, 'YYYY-MM-DD') as fecha
-                FROM historico_precios
-                GROUP BY zona, fecha
-                ORDER BY zona, fecha
-            """)
-
+        # Obtener todo el histórico agrupado por zona y fecha
+        cur.execute("""
+            SELECT zona, AVG(precio_m2) as precio_m2, MAX(fuente) as fuente, TO_CHAR(fecha, 'YYYY-MM-DD') as fecha
+            FROM historico_precios
+            GROUP BY zona, fecha
+            ORDER BY zona, fecha
+        """)
         rows = cur.fetchall()
-        historico = {}
 
+        # Agrupar por zona original
+        historico = {}
         for zona, precio_m2, fuente, fecha in rows:
-            clave = unidecode(zona).lower()
-            if zona_param and clave != zona_param:
-                continue
             if zona not in historico:
                 historico[zona] = []
             historico[zona].append({
@@ -45,6 +34,17 @@ def get_historico_precios():
                 "fuente": fuente
             })
 
+        # Si se busca una zona específica
+        if zona_param:
+            resultado = {}
+            for zona_original in historico:
+                zona_normalizada = unidecode(zona_original).lower()
+                if zona_normalizada == zona_param:
+                    resultado[zona_original] = historico[zona_original]
+                    print(f"⚙️ Coincidencia encontrada: {zona_original}")
+                    break
+            return jsonify(resultado)
+
         return jsonify(historico)
 
     except Exception as e:
@@ -52,7 +52,5 @@ def get_historico_precios():
         return jsonify({"error": "Error al obtener histórico"}), 500
 
     finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+        if cur: cur.close()
+        if conn: conn.close()

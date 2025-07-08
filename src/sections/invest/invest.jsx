@@ -47,12 +47,9 @@ function Invest() {
     fetchData();
   }, []);
 
-  console.log(fullProps);
-
   useEffect(() => {
     const filtradasTemp = fullProps.filter((p) => p.isinvestment === true);
     setFiltradas(filtradasTemp);
-    console.log("Filtradas:", filtradasTemp);
   }, [fullProps]);
 
   const descartadas = fullProps.filter(

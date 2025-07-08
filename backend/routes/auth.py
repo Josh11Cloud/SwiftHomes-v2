@@ -175,7 +175,7 @@ def update_profile(userid):
     data = request.get_json()
     nuevo_nombre = data.get("nombre")
     nuevo_email = data.get("email")
-    nueva_imagen = data.get("photoURL")
+    nueva_imagen = data.get("imagen")
 
     if not nuevo_nombre or not nuevo_email:
         return jsonify({"error": "Nombre y email son requeridos"}), 400

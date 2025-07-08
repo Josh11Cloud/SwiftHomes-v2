@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/inversiones": "pages/inversiones.js",
   "/": "pages/index.js",
-  "/comprar": "pages/comprar.js",
-  "/404": "pages/404.js"
+  "/micuenta": "pages/micuenta.js",
+  "/comprar": "pages/comprar.js"
 }

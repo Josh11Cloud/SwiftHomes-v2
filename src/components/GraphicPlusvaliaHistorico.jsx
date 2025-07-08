@@ -1,8 +1,19 @@
-import { motion } from 'framer-motion';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { useState, useEffect } from 'react';
-import unidecode from 'unidecode';
+import { motion } from "framer-motion";
+import { Camera } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import { useEffect, useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import unidecode from "unidecode";
 
 ChartJS.register(
   CategoryScale,
@@ -16,68 +27,80 @@ ChartJS.register(
 
 export const GraphicHistorico = ({ zona }) => {
   const [data, setData] = useState([]);
+  const [showReal, setShowReal] = useState(true);
+  const [showSimulado, setShowSimulado] = useState(true);
+  const [showPrediccion, setShowPrediccion] = useState(true);
+  const chartRef = useRef(null);
+
+  const normalizar = (str) =>
+    unidecode(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   useEffect(() => {
-    if (zona) {
-      const zonaCodificada = encodeURIComponent(unidecode(zona.toLowerCase()));
+    if (!zona) return;
 
-      // Normalizador robusto
-      const normalizar = str =>
-        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const zonaCodificada = encodeURIComponent(unidecode(zona.toLowerCase()));
+    const zonaNormalizada = normalizar(zona);
 
-      const zonaNormalizada = normalizar(zona);
+    fetch(`http://127.0.0.1:5500/api/zonas/historico?zona=${zonaCodificada}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const zonaKey = Object.keys(data).find(
+          (z) => unidecode(z).toLowerCase() === zonaNormalizada
+        );
+        const zonaData = zonaKey ? data[zonaKey] : [];
 
-      fetch(`http://127.0.0.1:5500/api/zonas/historico?zona=${zonaCodificada}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log("Datos recibidos: ", data);
-          console.log("Zonas disponibles en la respuesta:", Object.keys(data));
-
-          Object.keys(data).forEach(z => {
-            console.log("→ zona en respuesta:", z, "| normalizada:", normalizar(z));
-          });
-
-          console.log("Zona original:", zona);
-          console.log("Zona codificada:", zonaCodificada);
-          console.log("Zona buscada normalizada:", zonaNormalizada);
-
-          const zonaKey = Object.keys(data).find(z => normalizar(z) === zonaNormalizada);
-          console.log("Zona clave encontrada en data:", zonaKey);
-
-          const zonaData = zonaKey ? data[zonaKey] : [];
-          if (zonaData.length > 0) {
-            setData(zonaData);
-          } else {
-            console.log("No hay datos para la zona seleccionada");
-            setData([]);
-          }
-        })
-        .catch(err => console.error("Error obteniendo precios m2", err));
-    }
+        if (zonaData.length > 0) {
+          setData(zonaData);
+        } else {
+          setData([]);
+        }
+      })
+      .catch((err) => console.error("Error obteniendo precios m2", err));
   }, [zona]);
 
   if (!data || data.length === 0) {
     return <p className="text-gray-600 text-center mt-4">No hay datos disponibles</p>;
   }
 
-  const fechasUnicas = Array.from(new Set(data.map(p => p.fecha))).sort();
+  const fechasUnicas = Array.from(new Set(data.map((p) => p.fecha))).sort();
 
-  const dataset = {
-    label: zona,
-    data: fechasUnicas.map(fecha => {
-      const item = data.find(p => p.fecha === fecha);
+  const reales = data.filter((d) => d.fuente === "propiedades.com");
+  const simulados = data.filter((d) => d.fuente === "simulado");
+  const predicciones = data.filter((d) => d.fuente === "prediccion");
+
+  const makeDataset = (label, puntos, color, dash = []) => ({
+    label,
+    data: fechasUnicas.map((f) => {
+      const item = puntos.find((p) => p.fecha === f);
       return item ? item.precio_m2 : null;
     }),
-    borderColor: "#0077b6",
-    backgroundColor: "#0077b6",
+    borderColor: color,
+    backgroundColor: color,
+    borderDash: dash,
     tension: 0.3,
     spanGaps: true,
     fill: false,
-  };
+  });
+
+  const datasets = [];
+  if (showReal) datasets.push(makeDataset("Histórico Real", reales, "#0077b6"));
+ if (showSimulado) datasets.push(makeDataset("Histórico Simulado", simulados, "#0ea5e9d9", [6, 3]));
+  if (showPrediccion) datasets.push(makeDataset("Predicción", predicciones, "#14b8a6d9", [2, 2]));
 
   const chartData = {
     labels: fechasUnicas,
-    datasets: [dataset],
+    datasets,
+  };
+
+  const handleDownload = async () => {
+    const chartEl = chartRef.current;
+    if (chartEl) {
+      const canvas = await html2canvas(chartEl);
+      const link = document.createElement("a");
+      link.download = `historico_${zona}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
   };
 
   return (
@@ -85,23 +108,72 @@ export const GraphicHistorico = ({ zona }) => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7 }}
-      className="bg-slate-50 p-4 rounded shadow-md w-full overflow-x-auto"
+      className="bg-white p-4 rounded shadow-md w-full overflow-x-auto"
     >
-      <h3 className="text-xl font-bold mb-4 text-[#0077b6]">Histórico de precios por m² en {zona}</h3>
-      <div className="min-w-[300px] sm:min-w-[500px] md:min-w-[700px] text-gray-800">
+      <h3 className="text-xl font-bold mb-2 text-[#0077b6]">
+        Histórico y predicción en {zona}
+      </h3>
+
+      <div className="flex flex-wrap gap-4 items-center mb-4 text-sm text-gray-600">
+        <label>
+          <input className="checkbox" type="checkbox" checked={showReal} onChange={() => setShowReal(!showReal)} />{" "}
+          <span className="font-medium">Histórico Real</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={showSimulado}
+            className="checkbox accent-sky-500"
+            onChange={() => setShowSimulado(!showSimulado)}
+          />{" "}
+          <span className="font-medium">Simulado</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={showPrediccion}
+            className="checkbox accent-teal-500"
+            onChange={() => setShowPrediccion(!showPrediccion)}
+          />{" "}
+          <span className="font-medium">Predicción</span>
+        </label>
+
+       <button
+        onClick={handleDownload}
+        className="ml-auto bg-[#0077b6] text-slate-50 px-3 py-1 rounded hover:bg-[#005f87] transition flex items-center"
+      >
+        <Camera size={18} className="mr-2" />
+        Guardar gráfico
+      </button>
+      </div>
+
+      <div
+        className="min-w-[300px] sm:min-w-[500px] md:min-w-[700px] h-[350px]"
+        ref={chartRef}
+      >
         <Line
           data={chartData}
           options={{
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: {
-                position: "bottom",
-              },
+              legend: { display: false },
               tooltip: {
                 callbacks: {
-                  label: (context) =>
-                    ` ${context.dataset.label}: $${context.parsed.y.toLocaleString("es-MX")} por m²`,
+                  label: function (context) {
+                    const current = context.parsed.y;
+                    const index = context.dataIndex;
+                    const dataset = context.dataset.data;
+                    const prev = dataset[index - 1];
+
+                    let growth = "";
+                    if (prev && prev !== 0) {
+                      const percent = ((current - prev) / prev) * 100;
+                      growth = ` (${percent.toFixed(2)}%)`;
+                    }
+
+                    return ` ${context.dataset.label}: $${current.toLocaleString("es-MX")} por m²${growth}`;
+                  },
                 },
               },
             },
@@ -113,12 +185,20 @@ export const GraphicHistorico = ({ zona }) => {
                 title: {
                   display: true,
                   text: "Precio por m² (MXN)",
+                  color: "#0077b6",
+                  font: {
+                    weight: "bold",
+                  },
                 },
               },
               x: {
                 title: {
                   display: true,
                   text: "Fecha",
+                  color: "#0077b6",
+                  font: {
+                    weight: "bold",
+                  },
                 },
               },
             },
