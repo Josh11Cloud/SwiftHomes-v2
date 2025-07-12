@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify
 from db import get_connection
-from datetime import datetime
 import subprocess
 
 plusvalia_bp = Blueprint("plusvalia", __name__)
@@ -153,6 +152,63 @@ def obtener_tabla_plusvalia(propiedad_id):
 
     except Exception as e:
         print(f"[!] Error al generar tabla de plusvalía: {e}")
+        return jsonify({"error": "Error interno"}), 500
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()
+@plusvalia_bp.route("/api/plusvalia/predicciones", methods=["GET"])
+def obtener_predicciones():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT p.id, p.nombre, pz.plusvalia_esperada, pz.clasificacion, pz.fecha
+            FROM predicciones_plusvalia pz
+            JOIN propiedades p ON p.id = pz.propiedad_id
+            ORDER BY pz.fecha DESC
+        """)
+        resultados = cur.fetchall()
+        predicciones = [{
+            "id": r[0],
+            "nombre": r[1],
+            "plusvalia": float(r[2]),
+            "clasificacion": r[3],
+            "fecha": r[4].strftime("%Y-%m-%d")
+        } for r in resultados]
+        return jsonify(predicciones)
+    except Exception as e:
+        print("[!] Error obteniendo predicciones:", e)
+        return jsonify({"error": "Error interno"}), 500
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()
+@plusvalia_bp.route("/api/plusvalia/zona/<codigo_postal>", methods=["GET"])
+def obtener_datos_zona(codigo_postal):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT poblacion, ingreso_promedio, densidad_poblacional, transporte_cercano
+            FROM datos_zona
+            WHERE codigo_postal = %s
+        """, (codigo_postal,))
+        datos = cur.fetchone()
+
+        if not datos:
+            return jsonify({"error": "Zona no encontrada"}), 404
+
+        poblacion, ingreso, densidad, transporte = datos
+
+        return jsonify({
+            "codigo_postal": codigo_postal,
+            "poblacion": poblacion,
+            "ingreso_promedio": ingreso,
+            "densidad_poblacional": densidad,
+            "transporte_cercano": transporte
+        })
+
+    except Exception as e:
+        print(f"[!] Error al obtener datos de zona: {e}")
         return jsonify({"error": "Error interno"}), 500
     finally:
         if cur: cur.close()

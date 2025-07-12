@@ -25,8 +25,9 @@ ChartJS.register(
   Legend
 );
 
-export const GraphicHistorico = ({ zona }) => {
+export const GraphicHistorico = ({ zona, idPropiedad }) => {
   const [data, setData] = useState([]);
+  const [predicciones, setPredicciones] = useState([]);
   const [showReal, setShowReal] = useState(true);
   const [showSimulado, setShowSimulado] = useState(true);
   const [showPrediccion, setShowPrediccion] = useState(true);
@@ -41,22 +42,23 @@ export const GraphicHistorico = ({ zona }) => {
     const zonaCodificada = encodeURIComponent(unidecode(zona.toLowerCase()));
     const zonaNormalizada = normalizar(zona);
 
-    fetch(`http://127.0.0.1:5500/api/zonas/historico?zona=${zonaCodificada}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const zonaKey = Object.keys(data).find(
+    Promise.all([
+      fetch(`http://127.0.0.1:5500/api/zonas/historico?zona=${zonaCodificada}`).then((res) => res.json()),
+      fetch("http://127.0.0.1:5500/api/plusvalia/predicciones").then((res) => res.json())
+    ])
+      .then(([dataHistorico, dataPredicciones]) => {
+        setPredicciones(dataPredicciones);
+
+        const zonaKey = Object.keys(dataHistorico).find(
           (z) => unidecode(z).toLowerCase() === zonaNormalizada
         );
-        const zonaData = zonaKey ? data[zonaKey] : [];
-
-        if (zonaData.length > 0) {
-          setData(zonaData);
-        } else {
-          setData([]);
-        }
+        const zonaData = zonaKey ? dataHistorico[zonaKey] : [];
+        setData(zonaData);
       })
-      .catch((err) => console.error("Error obteniendo precios m2", err));
+      .catch((err) => console.error("Error cargando datos", err));
   }, [zona]);
+
+  const prediccionActual = predicciones.find(p => p.id === idPropiedad);
 
   if (!data || data.length === 0) {
     return <p className="text-gray-600 text-center mt-4">No hay datos disponibles</p>;
@@ -66,7 +68,7 @@ export const GraphicHistorico = ({ zona }) => {
 
   const reales = data.filter((d) => d.fuente === "propiedades.com");
   const simulados = data.filter((d) => d.fuente === "simulado");
-  const predicciones = data.filter((d) => d.fuente === "prediccion");
+  const prediccion = data.filter((d) => d.fuente === "prediccion");
 
   const makeDataset = (label, puntos, color, dash = []) => ({
     label,
@@ -84,8 +86,8 @@ export const GraphicHistorico = ({ zona }) => {
 
   const datasets = [];
   if (showReal) datasets.push(makeDataset("Histórico Real", reales, "#0077b6"));
- if (showSimulado) datasets.push(makeDataset("Histórico Simulado", simulados, "#0ea5e9d9", [6, 3]));
-  if (showPrediccion) datasets.push(makeDataset("Predicción", predicciones, "#14b8a6d9", [2, 2]));
+  if (showSimulado) datasets.push(makeDataset("Histórico Simulado", simulados, "#0ea5e9d9", [6, 3]));
+  if (showPrediccion) datasets.push(makeDataset("Predicción", prediccion, "#14b8a6d9", [2, 2]));
 
   const chartData = {
     labels: fechasUnicas,
@@ -138,13 +140,13 @@ export const GraphicHistorico = ({ zona }) => {
           <span className="font-medium">Predicción</span>
         </label>
 
-       <button
-        onClick={handleDownload}
-        className="ml-auto bg-[#0077b6] text-slate-50 px-3 py-1 rounded hover:bg-[#005f87] transition flex items-center"
-      >
-        <Camera size={18} className="mr-2" />
-        Guardar gráfico
-      </button>
+        <button
+          onClick={handleDownload}
+          className="ml-auto bg-[#0077b6] text-slate-50 px-3 py-1 rounded hover:bg-[#005f87] transition flex items-center"
+        >
+          <Camera size={18} className="mr-2" />
+          Guardar gráfico
+        </button>
       </div>
 
       <div
@@ -179,6 +181,7 @@ export const GraphicHistorico = ({ zona }) => {
             },
             scales: {
               y: {
+                max: Math.max(...data.map((d) => d.precio_m2)),
                 ticks: {
                   callback: (value) => `$${value.toLocaleString("es-MX")}`,
                 },
@@ -205,6 +208,23 @@ export const GraphicHistorico = ({ zona }) => {
           }}
         />
       </div>
+      {prediccionActual && (
+        <div className="mt-4 text-center">
+          <p className="text-sm text-center text-gray-700 bg-slate-200 w-full">
+            Plusvalía esperada:{" "}
+            <span
+              className={`font-semibold ${prediccionActual.clasificacion === "alta"
+                ? "text-green-600"
+                : prediccionActual.clasificacion === "media"
+                  ? "text-yellow-600"
+                  : "text-red-600"
+                }`}
+            >
+              {prediccionActual.plusvalia}% anual
+            </span>
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 };

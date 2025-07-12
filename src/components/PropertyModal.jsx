@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import ROIWithTooltip from "../sections/invest/ROITootlip";
 import { useState, useEffect } from "react";
 import SimpleBot from './SimpleBot';
-import TablaYGraficaPlusvalia from "./GraphicAndTable";
+import GraphicPlusvalia from "./GraphicAndTable";
 import { GraphicHistorico } from './GraphicPlusvaliaHistorico';
 import {
   MapPin,
   CircleParking,
   ShowerHead,
   BedSingle,
+  Hammer,
   X,
   Heart,
   CalendarClock,
@@ -26,6 +27,10 @@ import {
   ChevronLeft,
   BadgeCheck,
   Star,
+  ChartNoAxesCombined,
+  Handshake,
+  Users, DollarSign, Home, Bus,
+  TrendingUp, Minus, TrendingDown,
 } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
 
@@ -39,7 +44,9 @@ export default function PropertyModal({
 
   const { favorites, toggleFavorite } = useFavorites();
   const [plusvalia, setPlusvalia] = useState(null);
+  const [datosZona, setDatosZona] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [datosZonaCargados, setDatosZonaCargados] = useState(false);
   const imagenes = propiedad && propiedad.imagenes ? Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [] : [];
 
   const extraerZonaDeUbicacion = (ubicacion) => {
@@ -82,6 +89,19 @@ export default function PropertyModal({
   const [usuario, setUsuario] = useState({});
 
   useEffect(() => {
+    if (!propiedad?.codigo_postal) return;
+
+    fetch(`http://127.0.0.1:5500/api/plusvalia/zona/${propiedad.codigo_postal}`)
+      .then((res) => res.json())
+      .then(data => {
+        console.log("Zona cargada 🧠", data);
+        setDatosZona(data);
+        setDatosZonaCargados(true);
+      })
+      .catch(err => console.error("Error obteniendo datos de zona", err));
+  }, [propiedad?.codigo_postal]);
+
+  useEffect(() => {
     const obtenerUsuario = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:5500/api/usuarios/${propiedad.userid}`);
@@ -103,8 +123,57 @@ export default function PropertyModal({
         .then(res => res.json())
         .then(data => setPlusvalia(data))
         .catch(err => console.error("Error obteniendo plusvalía", err));
+
+      fetch("http://127.0.0.1:5500/api/plusvalia/predicciones")
+        .then(res => res.json())
+        .then(data => {
+          const prediccion = data.find(p => p.id === propiedad.id);
+          if (prediccion) {
+            setPlusvalia(prediccion);
+          }
+        })
+        .catch(err => console.error("Error obteniendo predicciones", err));
     }
   }, [propiedad]);
+
+  const tags = [
+    {
+      id: "oportunidadInversion",
+      label: "Oportunidad de Inversión",
+      condition:
+        propiedad.roi !== null &&
+        propiedad.roi !== undefined &&
+        !isNaN(parseFloat(propiedad.roi)) &&
+        parseFloat(propiedad.roi) >= 6,
+      bg: "bg-green-200",
+      text: "text-green-600",
+      icon: <ChartNoAxesCombined size={18} />,
+    },
+    {
+      id: "precioNegociable",
+      label: "Precio Negociable",
+      condition: propiedad.precionegociable === true,
+      bg: "bg-slate-50",
+      text: "text-[#0077b6]",
+      icon: <Handshake size={18} />,
+    },
+    {
+      id: "oportunidadRemodelacion",
+      label: "Oportunidad de Remodelar",
+      condition: propiedad.remodelar === true,
+      bg: "bg-slate-50",
+      text: "text-yellow-600",
+      icon: <Hammer size={18} />,
+    },
+    {
+      id: "plusvalia",
+      label: plusvalia ? `Plusvalía ${plusvalia.clasificacion}` : "Cargando...",
+      condition: plusvalia,
+      bg: plusvalia?.clasificacion === "alta" ? "bg-slate-100" : plusvalia?.clasificacion === "media" ? "bg-slate-100" : "bg-slate-100",
+      text: plusvalia?.clasificacion === "alta" ? "text-green-600" : plusvalia?.clasificacion === "media" ? "text-yellow-600" : "text-red-600",
+      icon: plusvalia?.clasificacion === "alta" ? <TrendingUp size={18} color="#22c55e" /> : plusvalia?.clasificacion === "media" ? <Minus size={18} color="#facc15" /> : <TrendingDown size={18} color="#ef4444" />,
+    },
+  ];
 
   return (
     <AnimatePresence>
@@ -132,6 +201,7 @@ export default function PropertyModal({
             >
               <X size={24} />
             </span>
+
             {propiedad && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -163,6 +233,21 @@ export default function PropertyModal({
             </h2>
 
             <div className="relative w-full h-auto mb-4 flex justify-between">
+              <div className="absolute top-2 left-2 z-10 flex items-center gap-2 overflow-x-auto max-w-[90%] scrollbar-hide mt-2">
+                {tags.map(
+                  (tag) => {
+                    return tag.condition && (
+                      <div
+                        key={tag.id}
+                        className={`flex px-2 py-1 text-xs rounded-full font-semibold shadow items-center gap-1 ${tag.bg} ${tag.text}`}
+                      >
+                        {tag.icon && tag.icon}
+                        <span>{tag.label}</span>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
               <motion.img
                 key={currentIndex}
                 src={imagenes[currentIndex]}
@@ -281,16 +366,6 @@ export default function PropertyModal({
                   </ul>
                 </div>
               </div>
-              {propiedad.etiquetas?.includes("nuevo") && (
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  Nuevo
-                </span>
-              )}
-              {propiedad.etiquetas?.includes("oportunidad-inversion") && (
-                <span className="bg-blue-100 text-[#0077b6] text-xs px-2 py-1 rounded-full">
-                  Oportunidad de Inversión
-                </span>
-              )}
               {window.location.pathname === "/inversiones" && (
                 <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
                   {showROI && (
@@ -320,12 +395,33 @@ export default function PropertyModal({
                       })()}
                     </span>
                   )}
-                  <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
-                    <TablaYGraficaPlusvalia propiedadId={propiedad.id} />
-                  </div>
-                  <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4 text-center text-gray-800">
-                    <GraphicHistorico zona={extraerZonaDeUbicacion(propiedad.ubicacion)} />
-                  </div>
+                </div>
+              )}
+              <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4">
+                <GraphicPlusvalia propiedadId={propiedad.id} />
+              </div>
+              <div className="p-2 mt-2 border rounded-lg shadow-xl bg-slate-50 text-sm space-y-4 text-center text-gray-800">
+                <GraphicHistorico zona={extraerZonaDeUbicacion(propiedad.ubicacion)} idPropiedad={propiedad.id} />
+              </div>
+              {datosZonaCargados && datosZona && (
+                <div className="bg-white p-4 rounded-lg shadow text-sm text-gray-700 space-y-2 mt-4 border border-slate-200">
+                  <h3 className="text-xl text-[#0077b6] text-start font-bold mb-2">Datos de la Zona</h3>
+                  <p className="flex items-center gap-2">
+                    <Users size={18} className="text-[#0077b6]" />
+                    <strong>Población:</strong> {datosZona.poblacion.toLocaleString()}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <DollarSign size={18} className="text-[#0077b6]" />
+                    <strong>Ingreso Promedio:</strong> ${datosZona.ingreso_promedio.toLocaleString()} MXN
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Home size={18} className="text-[#0077b6]" />
+                    <strong>Densidad:</strong> {datosZona.densidad_poblacional} hab/km²
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Bus size={18} className="text-[#0077b6]" />
+                    <strong>Transporte:</strong> {datosZona.transporte_cercano ? "Sí" : "No"}
+                  </p>
                 </div>
               )}
               <h3 className="text-lg text-gray-800 font-bold mt-5 text-start">Publicado por</h3>

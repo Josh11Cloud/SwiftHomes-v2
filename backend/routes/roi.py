@@ -47,6 +47,8 @@ def calcular_roi(propiedad_id):
         cur.close()
         conn.close()
 
+        resultados = calcular_metricas(precio, ingresos_mensuales, gastos_anuales)
+        print("ROI calculado:", resultados)
         return jsonify(resultados), 200
 
     except Exception as e:

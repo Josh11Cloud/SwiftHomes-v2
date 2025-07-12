@@ -14,22 +14,41 @@ function Buy() {
     const fetchProperties = async () => {
       try {
         const res = await fetch("http://192.168.100.64:5500/api/propiedades");
-        if (!res.ok) throw new Error("No se pudo obtener propiedades");
-
+        if (!res.ok) {
+          console.error("Error al obtener propiedades:", res.status);
+          throw new Error("No se pudo obtener propiedades");
+        }
         const fetchedProperties = await res.json();
 
-        const parsedProperties = fetchedProperties.map((p) => ({
-          id: p.id || crypto.randomUUID(),
-          nombre: p.nombre,
-          precio: Number(p.precio) || 0,
-          ubicacion: p.ubicacion ?? '',
-          tipo: p.tipo ?? '',
-          categoria: p.categoria ?? '',
-          imagen: p.imagen,
-          descripcion: p.descripcion,
-        }));
+        const propertiesWithROI = await Promise.all(
+            fetchedProperties.properties.map(async (p) => {
+            try {
+              const roiRes = await fetch(`http://192.168.100.64:5500/api/roi/${p.id}`);
+              if (!roiRes.ok) {
+                console.error(`Error al obtener ROI para propiedad ${p.id}:`, roiRes.status);
+                return { ...p, roi: null, ingresoAnual: null, utilidadAnual: null, plazoDelRetorno: null };
+              }
+              const roiData = await roiRes.json();
+              if (!roiData) {
+                console.log(`No se encontró ROI para propiedad ${p.id}`);
+                return { ...p, roi: null, ingresoAnual: null, utilidadAnual: null, plazoDelRetorno: null };
+              }
 
-        setFullProps(parsedProperties);
+              return {
+                ...p,
+                roi: roiData.roi,
+                ingresoAnual: roiData.ingreso_mensual * 12,
+                utilidadAnual: roiData.ingreso_mensual * 12 - p.gastos_anuales,
+                plazoDelRetorno: roiData.payback_years,
+              };
+            } catch (e) {
+              console.error(`Error al obtener ROI para propiedad ${p.id}:`, e);
+              return { ...p, roi: null, ingresoAnual: null, utilidadAnual: null, plazoDelRetorno: null };
+            }
+          })
+        );
+
+        setFullProps(propertiesWithROI);
         setLoading(false);
       } catch (error) {
         toast.error("Error al obtener propiedades: " + error.message);
@@ -78,8 +97,11 @@ function Buy() {
       <PropertiesPerPage
         properties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta")}
         category="venta"
+        showROI={true}
         propertiesPerPage={propertiesPerPage}
-        initialProperties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta")}
+        initialProperties={fullProps.filter(p => p.categoria?.toLowerCase().trim() === "venta").map(p => {
+          return p;
+        })}
       />
     </>
   );

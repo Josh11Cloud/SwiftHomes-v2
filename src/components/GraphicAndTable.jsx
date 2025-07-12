@@ -4,7 +4,7 @@ import "chart.js/auto";
 import Spinner from "./Spinner";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
 
-const TablaYGraficaPlusvalia = ({ propiedadId }) => {
+const GraphicPlusvalia = ({ propiedadId }) => {
     const [datos, setDatos] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -83,32 +83,11 @@ const TablaYGraficaPlusvalia = ({ propiedadId }) => {
                 Proyección de Plusvalía
             </h3>
 
-            {/* Gráfica */}
             <div className="bg-slate-50 p-4 rounded shadow mb-4">
                 <Line data={chartData} options={chartOptions} />
             </div>
-
-            {/* Tabla */}
-            <table className="w-full text-left border border-gray-300 text-gray-700">
-                <thead className="bg-[#0077b6] text-white">
-                    <tr>
-                        <th className="p-2 border">Año</th>
-                        <th className="p-2 border">Valor Estimado</th>
-                        <th className="p-2 border">Plusvalía Acumulada</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {datos.map((item) => (
-                        <tr key={item.anio}>
-                            <td className="p-2 border">{item.anio}</td>
-                            <td className="p-2 border">{formatter.format(item.valor)}</td>
-                            <td className="p-2 border">{item.plusvalia_acumulada.toFixed(2)}%</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
         </div>
     );
 };
 
-export default TablaYGraficaPlusvalia;
+export default GraphicPlusvalia;

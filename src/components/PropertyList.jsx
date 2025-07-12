@@ -73,26 +73,26 @@ export default function PropertyList({ property, showROI }) {
         property.roi !== null &&
         property.roi !== undefined &&
         !isNaN(parseFloat(property.roi)) &&
-        parseFloat(property.roi) >= 7,
+        parseFloat(property.roi) >= 6,
       bg: "bg-green-200",
       text: "text-green-600",
       icon: <ChartNoAxesCombined size={18} />,
     },
     {
-      id: "oportunidadRemodelacion",
-      label: "Oportunidad de Remodelar",
-      condition: property.estado === "para remodelar",
-      bg: "bg-slate-200",
-      text: "text-yellow-600",
-      icon: <Hammer size={18} />,
-    },
-    {
       id: "precioNegociable",
       label: "Precio Negociable",
-      condition: property.precioNegociable === true,
-      bg: "bg-slate-200",
+      condition: property.precionegociable === true,
+      bg: "bg-slate-50",
       text: "text-[#0077b6]",
       icon: <Handshake size={18} />,
+    },
+    {
+      id: "oportunidadRemodelacion",
+      label: "Oportunidad de Remodelar",
+      condition: property.remodelar === true,
+      bg: "bg-slate-50",
+      text: "text-yellow-600",
+      icon: <Hammer size={18} />,
     },
   ];
 
@@ -111,18 +111,23 @@ export default function PropertyList({ property, showROI }) {
         className="cursor-pointer p-4 relative bg-slate-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-200 px-4 py-2 h-auto mb-6"
       >
         {/* TAGS DE OPORTUNIDAD */}
-        <div className="absolute top-3 left-3 flex items-center gap-2 overflow-x-auto max-w-[90%] scrollbar-hide">
+        <div
+          className="absolute top-3 left-3 flex items-center gap-2 overflow-x-auto max-w-[90%] scrollbar-hide"
+          style={{ zIndex: 15 }}
+        >
           {tags.map(
-            (tag) =>
-              tag.condition && (
+            (tag) => {
+              return tag.condition && (
                 <div
                   key={tag.id}
                   className={`flex px-2 py-1 text-xs rounded-full font-semibold shadow items-center gap-1 ${tag.bg} ${tag.text}`}
+                  style={{ zIndex: 1000 }}
                 >
                   {tag.icon}
                   <span>{tag.label}</span>
                 </div>
-              )
+              );
+            }
           )}
         </div>
         {property && (
